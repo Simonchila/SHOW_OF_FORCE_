@@ -31,7 +31,7 @@ public abstract class BaseFrame extends JFrame {
         setLocationRelativeTo(null);
 
         // Call the subclass's addGuiComponents() to add specific components
-        addGuiComponents();
+        //addGuiComponents();
     }
 
     // This method will need to be defined by the subclass
