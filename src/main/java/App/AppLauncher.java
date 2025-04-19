@@ -1,9 +1,7 @@
 package App;
 
 
-import DB_OBJs.User;
-import GUIs.DashBoardGUI;
-import GUIs.LoginFormGUI;
+import VIEWs.LoginFormGUI;
 
 import javax.swing.*;
 
@@ -20,9 +18,9 @@ public class AppLauncher {
 
            // Testing the DashBoard GUI
            //new DashBoardGUI(new User(2,"Tracker_Admin", "admin123")).setVisible(true);
-           new DashBoardGUI(new User("newuser3", "password")).setVisible(true);
+           //new DashBoardGUI(new User("newuser2", "password", "Admin")).setVisible(true);
 
-            //new LoginFormGUI().setVisible(true);
+            new LoginFormGUI().setVisible(true);
 
         });
     }

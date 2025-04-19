@@ -13,6 +13,9 @@ dependencies {
     // Adding MariaDB JDBC driver as an implementation dependancy
     implementation(files("libs/mariadb-java-client-3.3.2.jar"))
 
+    // Adding Flatlaf dependancy to the project
+    implementation("com.formdev:flatlaf:3.4")
+
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
 }

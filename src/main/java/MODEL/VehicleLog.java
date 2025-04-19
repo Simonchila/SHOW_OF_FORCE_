@@ -1,4 +1,4 @@
-package DB_OBJs;
+package MODEL;
 
 import java.time.LocalDateTime;
 

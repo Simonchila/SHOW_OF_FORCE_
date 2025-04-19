@@ -1,4 +1,4 @@
-package DB_OBJs;
+package MODEL;
 
 public class User {
     private  int id;
@@ -9,13 +9,14 @@ public class User {
     private boolean accountLocked;
 
     // Constructor for new users (default role: Viewer)
-    public User(String username, String password) {
+    public User(String username, String password, String role) {
         this.username = username;
         this.password = password;
-        this.role = "Viewer";
+        this.role = role;
         this.failedLoginAttempts = 0;
         this.accountLocked = false;
     }
+
 
     // Constructor for loading user from database
     public User(int id, String username, String password, String role, int failedLoginAttempts, boolean accountLocked) {
