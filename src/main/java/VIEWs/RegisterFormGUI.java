@@ -95,7 +95,7 @@ public class RegisterFormGUI extends BaseFrame {
                 showError("Passwords do not match.");
                 return;
             }
-
+2
             try {
                 User user = new User(username, password, role);
                 boolean success = UserController.register(user.getUsername(), user.getPassword(), user.getRole());
