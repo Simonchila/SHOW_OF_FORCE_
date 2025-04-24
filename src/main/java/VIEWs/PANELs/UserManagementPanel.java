@@ -1,14 +1,26 @@
 package VIEWs.PANELs;
 
+import DB_OBJs.CONTROLLERS.UserController;
+import MODEL.User;
+import VIEWs.DashBoardGUI;
+import VIEWs.LoginFormGUI;
+import VIEWs.RegisterFormGUI;
+
 import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableModel;
+import javax.swing.table.TableRowSorter;
 import java.awt.*;
 import java.awt.event.*;
 
-public class UserManagementPanel extends JPanel  implements ActionListener {
+public class UserManagementPanel extends JPanel{
 
     // Variables declaration - do not modify
+    private DashBoardGUI dashboard;
     private JTextField AdminDashBoardLabel;
     private JToggleButton AuditLogButton;
+    private JButton addUserButton;
+    private JButton DeleteUser;
     private JLabel GoToLabel;
     private JPanel UserManagementPanel;
     private JButton VehicleManagementButton;
@@ -22,26 +34,28 @@ public class UserManagementPanel extends JPanel  implements ActionListener {
     private JTable userManagementTable;
     // End of variables declaration
 
-    public UserManagementPanel() {
+    public UserManagementPanel(DashBoardGUI dashboard) {
+        this.dashboard = dashboard;
         addComponents();
     }
 
-
     private void addComponents() {
 
-        UserManagementPanel = new javax.swing.JPanel();
-        VehicleManagementButton = new javax.swing.JButton();
-        AuditLogButton = new javax.swing.JToggleButton();
-        GoToLabel = new javax.swing.JLabel();
-        jScrollPane1 = new javax.swing.JScrollPane();
-        userManagementTable = new javax.swing.JTable();
-        searchTextField = new javax.swing.JTextField();
-        searchButton = new javax.swing.JButton();
-        filterComboBox = new javax.swing.JComboBox<>();
-        AdminDashBoardLabel = new javax.swing.JTextField();
-        filterbyLabel = new javax.swing.JLabel();
-        jTextField15 = new javax.swing.JTextField();
-        logOutButton = new javax.swing.JButton();
+        UserManagementPanel = new JPanel();
+        VehicleManagementButton = new JButton();
+        AuditLogButton = new JToggleButton();
+        GoToLabel = new JLabel();
+        jScrollPane1 = new JScrollPane();
+        userManagementTable = new JTable();
+        searchTextField = new JTextField();
+        searchButton = new JButton();
+        filterComboBox = new JComboBox<>();
+        AdminDashBoardLabel = new JTextField();
+        filterbyLabel = new JLabel();
+        jTextField15 = new JTextField();
+        logOutButton = new JButton();
+        addUserButton = new JButton();
+        DeleteUser = new JButton();
 
         VehicleManagementButton.setText("VEHICLE MANAGEMENT");
         VehicleManagementButton.addActionListener(new java.awt.event.ActionListener() {
@@ -132,45 +146,65 @@ public class UserManagementPanel extends JPanel  implements ActionListener {
         });
 
         logOutButton.setText("LOG OUT");
+        logOutButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                LogOutButtonActionPerformed(evt);
+            }
+        });
+
+        addUserButton.setText("AddUser");
+        addUserButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                AddUserButtonActionPerformed(evt);
+            }
+        });
+
+        DeleteUser.setText("DeleteUser");
+        DeleteUser.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                DeleteUserActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout UserManagementPanelLayout = new javax.swing.GroupLayout(UserManagementPanel);
         UserManagementPanel.setLayout(UserManagementPanelLayout);
         UserManagementPanelLayout.setHorizontalGroup(
                 UserManagementPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                         .addGroup(UserManagementPanelLayout.createSequentialGroup()
-                                .addContainerGap(24, Short.MAX_VALUE)
+                                .addContainerGap(30, Short.MAX_VALUE)
                                 .addGroup(UserManagementPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                         .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, UserManagementPanelLayout.createSequentialGroup()
-                                                .addGroup(UserManagementPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                                        .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 903, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                                .addGroup(UserManagementPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                                                         .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, UserManagementPanelLayout.createSequentialGroup()
-                                                                .addGroup(UserManagementPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                                                                        .addComponent(searchTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 104, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                                                        .addComponent(AdminDashBoardLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 156, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                                                .addComponent(searchTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 104, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                                                .addComponent(searchButton)
+                                                                .addGap(39, 39, 39)
+                                                                .addComponent(addUserButton)
+                                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                                                .addComponent(DeleteUser)
+                                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                                                .addComponent(filterbyLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 74, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                                                .addGap(2, 2, 2)
                                                                 .addGroup(UserManagementPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                                                        .addGroup(UserManagementPanelLayout.createSequentialGroup()
-                                                                                .addGap(242, 242, 242)
-                                                                                .addComponent(logOutButton)
-                                                                                .addGap(151, 151, 151)
-                                                                                .addComponent(GoToLabel))
-                                                                        .addGroup(UserManagementPanelLayout.createSequentialGroup()
-                                                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                                                                .addComponent(searchButton)))
-                                                                .addGap(18, 18, 18)
-                                                                .addComponent(VehicleManagementButton))
+                                                                        .addComponent(filterComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                                                        .addComponent(AuditLogButton))
+                                                                .addGap(30, 30, 30))
                                                         .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, UserManagementPanelLayout.createSequentialGroup()
-                                                                .addGroup(UserManagementPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                                                                        .addComponent(AuditLogButton)
-                                                                        .addGroup(UserManagementPanelLayout.createSequentialGroup()
-                                                                                .addComponent(filterbyLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 74, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                                                                .addComponent(filterComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                                                                .addGap(22, 22, 22)))
-                                                                .addGap(30, 30, 30)))
+                                                                .addComponent(AdminDashBoardLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 156, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                                                .addGap(242, 242, 242)
+                                                                .addComponent(logOutButton)
+                                                                .addGap(151, 151, 151)
+                                                                .addComponent(GoToLabel)
+                                                                .addGap(18, 18, 18)
+                                                                .addComponent(VehicleManagementButton)))
                                                 .addGap(39, 39, 39))
                                         .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, UserManagementPanelLayout.createSequentialGroup()
                                                 .addComponent(jTextField15, javax.swing.GroupLayout.PREFERRED_SIZE, 205, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                                .addGap(364, 364, 364))))
+                                                .addGap(364, 364, 364))
+                                        .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, UserManagementPanelLayout.createSequentialGroup()
+                                                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 906, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                                .addGap(30, 30, 30))))
         );
         UserManagementPanelLayout.setVerticalGroup(
                 UserManagementPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -185,16 +219,18 @@ public class UserManagementPanel extends JPanel  implements ActionListener {
                                 .addComponent(AuditLogButton)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                 .addComponent(jTextField15, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addGroup(UserManagementPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                        .addComponent(searchButton, javax.swing.GroupLayout.Alignment.TRAILING)
-                                        .addComponent(filterbyLabel, javax.swing.GroupLayout.Alignment.TRAILING)
+                                .addGap(37, 37, 37)
+                                .addGroup(UserManagementPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                                        .addComponent(filterbyLabel)
+                                        .addComponent(filterComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                                         .addGroup(UserManagementPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                                                 .addComponent(searchTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                                .addComponent(filterComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                                .addGap(31, 31, 31)
-                                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 414, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(52, 52, 52))
+                                                .addComponent(searchButton)
+                                                .addComponent(addUserButton)
+                                                .addComponent(DeleteUser)))
+                                .addGap(18, 18, 18)
+                                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 436, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(21, 21, 21))
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
@@ -209,41 +245,102 @@ public class UserManagementPanel extends JPanel  implements ActionListener {
         layout.setVerticalGroup(
                 layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                         .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                                .addGap(0, 12, Short.MAX_VALUE)
+                                .addGap(0, 0, Short.MAX_VALUE)
                                 .addComponent(UserManagementPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
     }
 
+    private void LogOutButtonActionPerformed(ActionEvent evt) {
+        // For example, log out the user and navigate back to the login screen
+        int option = JOptionPane.showConfirmDialog(this, "Are you sure you want to log out?", "Log Out", JOptionPane.YES_NO_OPTION);
+        if (option == JOptionPane.YES_OPTION) {
+            // Perform actual log out actions here (e.g., reset session, navigate to login screen)
+            dashboard.switchToPanel("LoginPanel");
+        }
+    }
+
     private void AuditLogButtonActionPerformed(ActionEvent evt) {
+        dashboard.switchToPanel("AuditLogPanel");
     }
 
-    private void VehicleManagementButtonActionPerformed(java.awt.event.ActionEvent evt) {
-        // TODO add your handling code here:
+    private void VehicleManagementButtonActionPerformed(ActionEvent evt) {
+        dashboard.switchToPanel("VehicleManagementPanel");
     }
 
-    private void searchTextFieldActionPerformed(java.awt.event.ActionEvent evt) {
-        // TODO add your handling code here:
+    // Handle search when enter is pressed
+    private void searchTextFieldActionPerformed(ActionEvent evt) {
+        String searchQuery = searchTextField.getText().trim();
+        if (!searchQuery.isEmpty()) {
+            performSearch(searchQuery);
+        }
     }
 
-    private void searchButtonActionPerformed(java.awt.event.ActionEvent evt) {
-        // TODO add your handling code here:
+    // Handle search button click
+    private void searchButtonActionPerformed(ActionEvent evt) {
+        String searchQuery = searchTextField.getText().trim();
+        if (!searchQuery.isEmpty()) {
+            performSearch(searchQuery);
+        } else {
+            JOptionPane.showMessageDialog(this, "Please enter a search query", "Error", JOptionPane.ERROR_MESSAGE);
+        }
     }
 
-    private void filterComboBoxComponentHidden(java.awt.event.ComponentEvent evt) {
-        // TODO add your handling code here:
+    // Perform the actual search/filtering logic
+    private void performSearch(String searchQuery) {
+        // This could be the logic to search in the user management table
+        // For example, filter the rows based on the search query
+        // Assuming you have access to the table model or data
+
+        // Example of filtering logic:
+        DefaultTableModel model = (DefaultTableModel) userManagementTable.getModel();
+        TableRowSorter<TableModel> sorter = new TableRowSorter<>(model);
+        userManagementTable.setRowSorter(sorter);
+        sorter.setRowFilter(RowFilter.regexFilter(searchQuery));
     }
 
-    private void AdminDashBoardLabelActionPerformed(java.awt.event.ActionEvent evt) {
-        // TODO add your handling code here:
+    // Handle filter combo box visibility changes (maybe reset filters when hidden)
+    private void filterComboBoxComponentHidden(ComponentEvent evt) {
+        // Reset filter when combo box is hidden (optional)
+        filterComboBox.setSelectedIndex(0); // Reset to default value
     }
 
-    private void jTextField15ActionPerformed(java.awt.event.ActionEvent evt) {
-        // TODO add your handling code here:
+    // Handle Admin Dashboard label action, possibly navigate to another panel
+    private void AdminDashBoardLabelActionPerformed(ActionEvent evt) {
+        // Navigate back to the Admin Dashboard panel
+        // This is just an example action; adjust as per your dashboard setup
+        dashboard.switchToPanel("AdminDashboardPanel");
     }
 
-    @Override
-    public void actionPerformed(ActionEvent e) {
-
+    // Handle JTextField 15 action, maybe used for the user management title or label
+    private void jTextField15ActionPerformed(ActionEvent evt) {
+        // For instance, display a message or perform an action when Enter is pressed
+        String currentText = jTextField15.getText().trim();
+        if (!currentText.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "You typed: " + currentText, "Info", JOptionPane.INFORMATION_MESSAGE);
+        }
     }
+
+    private void AddUserButtonActionPerformed(ActionEvent evt) {
+        // Implement logic to show RegisterFormGUI or add user
+        new RegisterFormGUI(); // Example: Launch registration form
+    }
+
+    private void DeleteUserActionPerformed(ActionEvent evt) {
+        int selectedRow = userManagementTable.getSelectedRow();
+        if (selectedRow != -1) {
+            // Implement user deletion logic here
+            String username = userManagementTable.getValueAt(selectedRow, 0).toString();
+            // Use UserController to delete user by username
+            UserController.deleteUser(username);
+            ((DefaultTableModel) userManagementTable.getModel()).removeRow(selectedRow);
+        } else {
+            JOptionPane.showMessageDialog(this, "Please select a user to delete.");
+        }
+    }
+
+    protected void showError(String message) {
+        JOptionPane.showMessageDialog(this, message, "Error", JOptionPane.ERROR_MESSAGE);
+    }
+
 }
 

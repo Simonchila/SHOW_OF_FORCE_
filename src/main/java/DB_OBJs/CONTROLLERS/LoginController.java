@@ -1,6 +1,6 @@
 package DB_OBJs.CONTROLLERS;
 
-import DB_OBJs.Security.SecurityUtils;
+import DB_OBJs.Security.SecurityUtilsController;
 import MODEL.User;
 import java.sql.*;
 import static Constants.CommonConstants.*;
@@ -30,7 +30,7 @@ public class LoginController {
                 return null;
             }
 
-            String inputHash = SecurityUtils.hashPassword(password);
+            String inputHash = SecurityUtilsController.hashPassword(password);
             if (!storedPassword.equals(inputHash)) {
                 failedAttempts++;
                 if (failedAttempts >= 3) {

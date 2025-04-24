@@ -1,10 +1,14 @@
 package VIEWs.PANELs;
 
+import VIEWs.DashBoardGUI;
+
 import javax.swing.*;
+import java.awt.*;
 import java.awt.event.*;
 
 public class AdminPanel extends JPanel implements ActionListener {
 
+    private DashBoardGUI dashboard;
     private JPanel mainPanel;
     private JTextField searchField;
     private JTextField headerField;
@@ -22,19 +26,19 @@ public class AdminPanel extends JPanel implements ActionListener {
     private JTextField dashboardLabel;
     private JButton logoutButton;
 
-    public AdminPanel() {
+    public AdminPanel(DashBoardGUI dashboard) {
+        this.dashboard = dashboard;
         addComponents();
     }
 
-    @SuppressWarnings("unchecked")
     private void addComponents() {
         mainPanel = new JPanel();
         searchField = new JTextField("search here");
-        headerField = new JTextField("                        VEHICLE MANAGEMENT");
+        headerField = new JTextField("                        TABLE OF ALL VEHICLE");
         JButton searchButton = new JButton("SEARCH");
         fromLabel = new JLabel("From:");
-        fromDateField = new JTextField("jTextField2");
-        toDateField = new JTextField("jTextField3");
+        fromDateField = new JTextField();
+        toDateField = new JTextField();
         toLabel = new JLabel("To:");
         statusLabel = new JTextField("Status:");
         statusComboBox = new JComboBox<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" });
@@ -66,12 +70,27 @@ public class AdminPanel extends JPanel implements ActionListener {
         dashboardLabel = new JTextField("     ADMIN DASHBOARD");
         logoutButton = new JButton("LOG OUT");
 
-        headerField.addActionListener(evt -> {});
-        fromDateField.addActionListener(evt -> {});
-        statusLabel.addActionListener(evt -> {});
-        dashboardLabel.addActionListener(evt -> {});
-        auditLogsButton.addActionListener(evt -> {});
+        searchButton.addActionListener(e -> {
+            // Perform the search operation
+            String query = searchField.getText();
+            // Logic to filter vehicles based on search query
+        });
 
+        userManagementButton.addActionListener(e -> dashboard.switchToPanel("UserManagementPanel"));
+        auditLogsButton.addActionListener(e -> dashboard.switchToPanel("AuditLogPanel"));
+        logoutButton.addActionListener(e -> {
+            int confirm = JOptionPane.showConfirmDialog(
+                    AdminPanel.this,
+                    "Are you sure you want to logout?",
+                    "Logout",
+                    JOptionPane.YES_NO_OPTION
+            );
+            if (confirm == JOptionPane.YES_OPTION) {
+                System.exit(0);
+            }
+        });
+
+        // Add components to layout
         GroupLayout layout = new GroupLayout(mainPanel);
         mainPanel.setLayout(layout);
         layout.setHorizontalGroup(
@@ -155,12 +174,12 @@ public class AdminPanel extends JPanel implements ActionListener {
         );
         thisLayout.setVerticalGroup(
                 thisLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                        .addComponent(mainPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(mainPanel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
         );
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
-
+        // Handle actions if necessary
     }
 }

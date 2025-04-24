@@ -100,4 +100,31 @@ public class VehicleController {
 
         return logs;
     }
+
+    public static boolean addVehicle(String make, String model, String yearText, String licensePlate) throws NumberFormatException, SQLException {
+        int year = Integer.parseInt(yearText); // throws NumberFormatException if invalid
+
+        Connection conn = DriverManager.getConnection(DB_URL, DB_USERNAME, DB_PASSWORD);
+        String sql = "INSERT INTO vehicles (make, model, year, licensePlate) VALUES (?, ?, ?, ?)";
+        PreparedStatement stmt = conn.prepareStatement(sql);
+        stmt.setString(1, make);
+        stmt.setString(2, model);
+        stmt.setInt(3, year);
+        stmt.setString(4, licensePlate);
+        stmt.executeUpdate();
+        conn.close();
+
+        return true;
+    }
+
+    public static boolean deleteVehicle(String licensePlate) throws SQLException {
+        Connection conn = DriverManager.getConnection(DB_URL, DB_USERNAME, DB_PASSWORD);
+        String sql = "DELETE FROM vehicles WHERE licensePlate = ?";
+        PreparedStatement stmt = conn.prepareStatement(sql);
+        stmt.setString(1, licensePlate);
+        int rows = stmt.executeUpdate();
+        conn.close();
+
+        return rows > 0;
+    }
 }

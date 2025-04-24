@@ -6,29 +6,29 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
-import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ComponentEvent;
 
-public class VehicleManagementPanel extends JPanel{
+public class VehicleLogPanel extends JPanel {
 
     // Variables declaration - do not modify
     private DashBoardGUI dashboard;
-    private JTextField AdminDashBoardLabel;
-    private JButton AuditLogButton;
-    private JLabel GoToLabel;
-    private JButton LogOutButton;
-    private JPanel VehicleLog;
-    private JTextField VehicleLogLabel;
-    private JTable VehicleLogsTable;
-    private JComboBox<String> filerComboBox;
-    private JLabel filterByLabel;
-    private JScrollPane ScrollPane;
-    private JButton searchButton;
-    private JTextField searchTextField;
+    private javax.swing.JTextField AdminDashBoardLabel;
+    private javax.swing.JButton AuditLogButton;
+    private javax.swing.JLabel GoToLabel;
+    private javax.swing.JButton LogOutButton;
+    private javax.swing.JPanel VehicleLog;
+    private javax.swing.JTextField VehicleLogLabel;
+    private javax.swing.JTable VehicleLogsTable;
+    private javax.swing.JComboBox<String> filterComboBox;
+    private javax.swing.JLabel filterByLabel;
+    private javax.swing.JScrollPane jScrollPane4;
+    private javax.swing.JButton searchButton;
+    private javax.swing.JTextField searchTextField;
     // End of variables declaration
 
-    public VehicleManagementPanel(DashBoardGUI dashboard){
+    public VehicleLogPanel(DashBoardGUI dashboard) {
         this.dashboard = dashboard;
         addComponents();
     }
@@ -36,9 +36,9 @@ public class VehicleManagementPanel extends JPanel{
     private void addComponents() {
 
         VehicleLog = new javax.swing.JPanel();
-        ScrollPane = new javax.swing.JScrollPane();
+        jScrollPane4 = new javax.swing.JScrollPane();
         VehicleLogsTable = new javax.swing.JTable();
-        filerComboBox = new javax.swing.JComboBox<>();
+        filterComboBox = new javax.swing.JComboBox<>();
         filterByLabel = new javax.swing.JLabel();
         AuditLogButton = new javax.swing.JButton();
         GoToLabel = new javax.swing.JLabel();
@@ -67,31 +67,13 @@ public class VehicleManagementPanel extends JPanel{
                 return types [columnIndex];
             }
         });
-        ScrollPane.setViewportView(VehicleLogsTable);
+        jScrollPane4.setViewportView(VehicleLogsTable);
 
-        filerComboBox.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+        filterComboBox.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
 
         filterByLabel.setText("FILTER BY");
 
-        AuditLogButton.setText("AUDIT LOGS");
-        AuditLogButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                AuditLogButtonActionPerformed(evt);
-            }
-        });
-
-        LogOutButton.setText("LOG OUT");
-        LogOutButton.addActionListener(e -> {
-            int confirm = JOptionPane.showConfirmDialog(
-                    VehicleManagementPanel.this,
-                    "Are you sure you want to logout?",
-                    "Logout",
-                    JOptionPane.YES_NO_OPTION
-            );
-            if (confirm == JOptionPane.YES_OPTION) {
-                System.exit(0);
-            }
-        });
+        AuditLogButton.setText("AUDIT LOG");
 
         GoToLabel.setText("GO TO");
 
@@ -109,6 +91,11 @@ public class VehicleManagementPanel extends JPanel{
         VehicleLogLabel.setText("     VEHICLE LOGS");
 
         LogOutButton.setText("LOG OUT");
+        LogOutButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                LogOutButtonActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout VehicleLogLayout = new javax.swing.GroupLayout(VehicleLog);
         VehicleLog.setLayout(VehicleLogLayout);
@@ -133,14 +120,14 @@ public class VehicleManagementPanel extends JPanel{
                                                 .addComponent(GoToLabel)
                                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)))
                                 .addGroup(VehicleLogLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                        .addComponent(filerComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addComponent(filterComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                                         .addComponent(AuditLogButton))
                                 .addGap(133, 133, 133))
                         .addGroup(VehicleLogLayout.createSequentialGroup()
                                 .addGroup(VehicleLogLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                         .addGroup(VehicleLogLayout.createSequentialGroup()
                                                 .addGap(58, 58, 58)
-                                                .addComponent(ScrollPane, javax.swing.GroupLayout.PREFERRED_SIZE, 1012, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                                .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, 1012, javax.swing.GroupLayout.PREFERRED_SIZE))
                                         .addGroup(VehicleLogLayout.createSequentialGroup()
                                                 .addGap(495, 495, 495)
                                                 .addComponent(VehicleLogLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 133, javax.swing.GroupLayout.PREFERRED_SIZE)))
@@ -153,10 +140,10 @@ public class VehicleManagementPanel extends JPanel{
                                 .addComponent(VehicleLogLabel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addGap(32, 32, 32)
                                 .addGroup(VehicleLogLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                        .addComponent(filerComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addComponent(filterComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                                         .addComponent(filterByLabel))
                                 .addGap(32, 32, 32)
-                                .addComponent(ScrollPane, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addGap(61, 61, 61))
                         .addGroup(VehicleLogLayout.createSequentialGroup()
                                 .addGap(42, 42, 42)
@@ -196,10 +183,6 @@ public class VehicleManagementPanel extends JPanel{
         );
     }
 
-    private void AuditLogButtonActionPerformed(ActionEvent evt) {
-        dashboard.switchToPanel("AuditLogPanel");
-    }
-
     // Handle search when enter is pressed
     private void searchTextFieldActionPerformed(ActionEvent evt) {
         String searchQuery = searchTextField.getText().trim();
@@ -221,5 +204,18 @@ public class VehicleManagementPanel extends JPanel{
         sorter.setRowFilter(RowFilter.regexFilter(searchQuery));
     }
 
-}
+    // Handle filter combo box visibility changes (maybe reset filters when hidden)
+    private void filterComboBox(ComponentEvent evt) {
+        // Reset filter when combo box is hidden (optional)
+        filterComboBox.setSelectedIndex(0); // Reset to default value
+    }
 
+    private void LogOutButtonActionPerformed(ActionEvent evt) {
+        // For example, log out the user and navigate back to the login screen
+        int option = JOptionPane.showConfirmDialog(this, "Are you sure you want to log out?", "Log Out", JOptionPane.YES_NO_OPTION);
+        if (option == JOptionPane.YES_OPTION) {
+            // Perform actual log out actions here (e.g., reset session, navigate to login screen)
+            dashboard.switchToPanel("LoginPanel");
+        }
+    }
+}

@@ -2,7 +2,7 @@ package DB_OBJs.Security;
 
 import java.security.MessageDigest;
 
-public class SecurityUtils {
+public class SecurityUtilsController {
     public static String hashPassword(String password) {
         try {
             MessageDigest md = MessageDigest.getInstance("SHA-256");

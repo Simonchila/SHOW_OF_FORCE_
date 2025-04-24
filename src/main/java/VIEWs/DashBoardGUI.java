@@ -1,37 +1,62 @@
 package VIEWs;
 
 import MODEL.User;
-import VIEWs.PANELs.AdminPanel;
-
+import VIEWs.PANELs.*;
 import javax.swing.*;
+import java.awt.*;
 
 public class DashBoardGUI extends JFrame {
+
     private User user;
+    private CardLayout cardLayout;
+    private JPanel cardPanel;
 
     public DashBoardGUI(User user) {
         this.user = user;
-        // Call to initialize the frame
-        initUI();
+        addGuiComponents();
     }
 
-    private void initUI() {
-        // Check the user's role by calling the getRole() method
-        if ("admin".equalsIgnoreCase(user.getRole())) {
-            // If the user is an admin, display the AdminPanel
-            AdminPanel adminPanel = new AdminPanel();
-            setContentPane(adminPanel);
-        } else {
-            // If the user is not an admin, display a simple message
-            JPanel nonAdminPanel = new JPanel();
-            nonAdminPanel.add(new JLabel("You do not have admin privileges."));
-            setContentPane(nonAdminPanel);
+    protected void addGuiComponents(){
+        cardLayout = new CardLayout();
+        cardPanel = new JPanel(cardLayout);
+
+        switch (user.getRole().toLowerCase()) {
+            case "admin":
+                AdminPanel adminPanel = new AdminPanel(this);
+                UserManagementPanel userManagementPanel = new UserManagementPanel(this);
+                AuditLogPanel auditLogPanel = new AuditLogPanel(this);
+                VehicleManagementPanel vehicleManagementPanel = new VehicleManagementPanel(this);
+
+                cardPanel.add(adminPanel, "AdminPanel");
+                cardPanel.add(userManagementPanel, "UserManagementPanel");
+                cardPanel.add(auditLogPanel, "AuditLogPanel");
+                cardPanel.add(vehicleManagementPanel, "VehicleManagementPanel");
+
+                cardLayout.show(cardPanel, "AdminPanel");
+                break;
+
+            case "guard":
+                GuardsPanel guardsPanel = new GuardsPanel(this);
+                cardPanel.add(guardsPanel, "GuardsPanel");
+                cardLayout.show(cardPanel, "GuardsPanel");
+                break;
+
+            default:
+                ViewersPanel viewerPanel = new ViewersPanel(this); // Replace with your actual viewer panel
+                cardPanel.add(viewerPanel, "ViewersPanel");
+                cardLayout.show(cardPanel, "ViewerPanel");
+                break;
+
         }
 
-        // Set frame properties
+        setContentPane(cardPanel);
         setTitle("Dashboard");
-        setSize(700, 700);
-        setLocationRelativeTo(null);  // Center the frame on the screen
+        setSize(900, 900);
+        setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     }
 
+    public void switchToPanel(String panelName) {
+        cardLayout.show(cardPanel, panelName);
+    }
 }
