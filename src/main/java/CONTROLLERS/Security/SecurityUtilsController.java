@@ -1,4 +1,4 @@
-package DB_OBJs.Security;
+package CONTROLLERS.Security;
 
 import java.security.MessageDigest;
 

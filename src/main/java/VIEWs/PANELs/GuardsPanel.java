@@ -1,21 +1,22 @@
 package VIEWs.PANELs;
 
-import DB_OBJs.CONTROLLERS.VehicleController;
+import CONTROLLERS.AdminController;
+import CONTROLLERS.VehicleController;
 import VIEWs.DashBoardGUI;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.sql.SQLException;
+
+import java.io.File;
 
 public class GuardsPanel extends JPanel {
 
     private DashBoardGUI dashboard;
-    private JTextField makeField, modelField, yearField, licensePlateField;
     private JLabel GuardLabel;
-    private JButton LogOutButton, SearchButton, addVehicleButton, deleteVehicleButton;
+    private JButton LogOutButton, SearchButton, addVehicleButton, deleteVehicleButton, validatePermitButton, generatePermitButton;
     private JTextField VehicleManagementLabel, searchTextField, fromDateField, toDateField, statusLabel;
     private JTable VehicleManagementTable;
     private JScrollPane jScrollPane2;
@@ -23,12 +24,6 @@ public class GuardsPanel extends JPanel {
 
     public GuardsPanel(DashBoardGUI dashboard) {
         this.dashboard = dashboard;
-        makeField = new JTextField("Make");
-        modelField = new JTextField("Model");
-        yearField = new JTextField("Year");
-        licensePlateField = new JTextField("License Plate");
-
-
         addComponents();
     }
 
@@ -45,7 +40,9 @@ public class GuardsPanel extends JPanel {
         GuardLabel = new JLabel("    GUARDs DashBoard");
         addVehicleButton = new JButton("CHECK IN");
         deleteVehicleButton = new JButton("CHECK OUT");
-        LogOutButton = new JButton("LOGOUT");
+        validatePermitButton = new JButton("VALIDATE PERMIT");
+        generatePermitButton = new JButton("GENERATE PERMIT");
+        LogOutButton = new JButton("LOG OUT");
 
         // Vehicle Table Setup
         VehicleManagementTable.setModel(new DefaultTableModel(
@@ -57,12 +54,9 @@ public class GuardsPanel extends JPanel {
         // Button Action Listeners
         addVehicleButton.addActionListener(this::addVehicleButtonActionPerformed);
         deleteVehicleButton.addActionListener(this::deleteVehicleButtonActionPerformed);
-        LogOutButton.setText("LOG OUT");
-        LogOutButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                LogOutButtonActionPerformed(evt);
-            }
-        });
+        validatePermitButton.addActionListener(this::validatePermitButtonActionPerformed);
+        //generatePermitButton.addActionListener(this::generatePermitButtonActionPerformed);
+        LogOutButton.addActionListener(this::LogOutButtonActionPerformed);
 
         // Layout Setup
         GroupLayout layout = new GroupLayout(this);
@@ -90,6 +84,10 @@ public class GuardsPanel extends JPanel {
                                                 .addGap(18)
                                                 .addComponent(deleteVehicleButton)
                                                 .addGap(18)
+                                                .addComponent(validatePermitButton)
+                                                .addGap(18)
+                                                .addComponent(generatePermitButton)
+                                                .addGap(18)
                                                 .addComponent(LogOutButton)))
                                 .addGap(30))
         );
@@ -101,6 +99,8 @@ public class GuardsPanel extends JPanel {
                                 .addComponent(GuardLabel)
                                 .addComponent(addVehicleButton)
                                 .addComponent(deleteVehicleButton)
+                                .addComponent(validatePermitButton)
+                                .addComponent(generatePermitButton)
                                 .addComponent(LogOutButton))
                         .addGap(20)
                         .addComponent(VehicleManagementLabel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
@@ -125,45 +125,119 @@ public class GuardsPanel extends JPanel {
         }
     }
 
-    private void addVehicleButtonActionPerformed(ActionEvent evt) {
-        String make = makeField.getText();
-        String model = modelField.getText();
-        String yearText = yearField.getText();
-        String licensePlate = licensePlateField.getText();
+    private void addVehicleButtonActionPerformed(java.awt.event.ActionEvent evt) {
+        // Step 1: Create a panel with a field
+        JPanel panel = new JPanel(new GridLayout(0, 1));
+        JTextField plateField = new JTextField();
+        JTextField ipAddressField = new JTextField();
 
-        if (make.isEmpty() || model.isEmpty() || yearText.isEmpty() || licensePlate.isEmpty()) {
-            JOptionPane.showMessageDialog(null, "All fields are required.");
-            return;
-        }
+        JLabel licensePlate = new JLabel("Enter License Plate: ");
+        JLabel IpAddress = new JLabel("Enter IP Address: ");
 
-        try {
-            VehicleController.addVehicle(make, model, yearText, licensePlate);
-            JOptionPane.showMessageDialog(null, "Vehicle added successfully.");
-        } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(null, "Year must be a valid number.");
-        } catch (SQLException e) {
-            JOptionPane.showMessageDialog(null, "Database error: " + e.getMessage());
+        panel.add(licensePlate);
+        panel.add(plateField);
+        panel.add(IpAddress);
+        panel.add(ipAddressField);
+
+        int result = JOptionPane.showConfirmDialog(null, panel, "Add Vehicle Entry",
+                JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+
+        if (result == JOptionPane.OK_OPTION) {
+            String licensePlateStr = plateField.getText().trim();
+            String ipAddressStr = ipAddressField.getText().trim();
+
+            if (licensePlateStr.isEmpty()) {
+                JOptionPane.showMessageDialog(null, "License plate is required.", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            if (ipAddressStr.isEmpty()) {
+                JOptionPane.showMessageDialog(null, "Ip Address is required.", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            try {
+
+                int loggedBy = dashboard.user.getId();
+
+                CONTROLLERS.VehicleController.addVehicle(licensePlateStr, loggedBy, ipAddressStr);
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+        } else {
+            // User cancelled
+            JOptionPane.showMessageDialog(null, "Vehicle entry cancelled.");
         }
     }
 
     private void deleteVehicleButtonActionPerformed(ActionEvent evt) {
-        String licensePlate = licensePlateField.getText();
+        JPanel panel = new JPanel(new GridLayout(0, 1));
+        JTextField plateField = new JTextField();
+        JLabel plateLabel = new JLabel("Enter License Plate: ");
 
-        if (licensePlate.isEmpty()) {
-            JOptionPane.showMessageDialog(null, "License plate is required.");
-            return;
-        }
+        panel.add(plateLabel);
+        panel.add(plateField);
 
-        try {
-            boolean deleted = VehicleController.deleteVehicle(licensePlate);
-            if (deleted) {
-                JOptionPane.showMessageDialog(null, "Vehicle deleted successfully.");
-            } else {
-                JOptionPane.showMessageDialog(null, "No vehicle found with that license plate.");
+        int result = JOptionPane.showConfirmDialog(null, panel, "Do You Really Want to DELETE This Vehicle",
+                JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+
+        if (result == JOptionPane.OK_OPTION) {
+            String licensePlateStr = plateField.getText().trim();
+
+            if (licensePlateStr.isEmpty()) {
+                JOptionPane.showMessageDialog(null, "License plate is required.", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
             }
-        } catch (SQLException e) {
-            JOptionPane.showMessageDialog(null, "Database error: " + e.getMessage());
+            try {
+                boolean deleted = VehicleController.deleteVehicle(licensePlateStr);
+                if (deleted) {
+                    JOptionPane.showMessageDialog(null, "Vehicle deleted successfully.");
+                } else {
+                    JOptionPane.showMessageDialog(null, "No vehicle found with that license plate.");
+                }
+            } catch (SQLException e) {
+                JOptionPane.showMessageDialog(null, "Database error: " + e.getMessage());
+            }
         }
     }
 
+    private void validatePermitButtonActionPerformed(ActionEvent evt) {
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Select QR Code Image");
+
+        int result = fileChooser.showOpenDialog(null);
+        if (result == JFileChooser.APPROVE_OPTION) {
+            File selectedFile = fileChooser.getSelectedFile();
+            CONTROLLERS.AdminController.validatePermitFromQRCode(selectedFile);
+        }
+    }
+/*
+    // this function as bdd
+    private void generatePermitButtonActionPerformed(ActionEvent evt){
+        String permitData = permitDataField.getText();
+
+        if (permitData.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please enter the permit data.");
+            return;
+        }
+
+        // Open file chooser to specify where to save the QR code image
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Save QR Code");
+        int userSelection = fileChooser.showSaveDialog(this);
+
+        if (userSelection == JFileChooser.APPROVE_OPTION) {
+            File fileToSave = fileChooser.getSelectedFile();
+            // Ensure the file ends with .png
+            if (!fileToSave.getName().endsWith(".png")) {
+                fileToSave = new File(fileToSave.getAbsolutePath() + ".png");
+            }
+
+            // Call the controller to generate the QR code
+            AdminController.generateQRCode(permitData, fileToSave);
+        }
+    }
+*/
 }

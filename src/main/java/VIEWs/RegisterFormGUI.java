@@ -1,6 +1,6 @@
 package VIEWs;
 
-import DB_OBJs.CONTROLLERS.UserController;
+import CONTROLLERS.UserController;
 import MODEL.User;
 import javax.swing.*;
 import java.awt.*;

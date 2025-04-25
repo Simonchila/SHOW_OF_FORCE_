@@ -1,11 +1,6 @@
 package DB_OBJs;
 
-import MODEL.User;
-
-import java.security.MessageDigest;
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
 
 import static Constants.CommonConstants.*;
 
@@ -20,4 +15,24 @@ public class MyJDBC {
         }
     }
 
+    // Make this function to run on every LogIN and logOUT session
+    public static void blacklistOverstayedVehicles() {
+        String sql = """
+           UPDATE VehicleLog
+           SET Status = 'BlackListed'
+           WHERE Status = 'Parked'
+             AND ExitTime IS NULL
+             AND TIMESTAMPDIFF(HOUR, EntryTime, NOW()) > 24
+           """;
+
+        try (Connection conn = DriverManager.getConnection(DB_URL, DB_USERNAME, DB_PASSWORD);
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+             int updated = stmt.executeUpdate();
+             System.out.println("Blacklisted " + updated + " overstayed vehicle(s).");
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
 }

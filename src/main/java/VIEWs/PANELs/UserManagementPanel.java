@@ -1,16 +1,13 @@
 package VIEWs.PANELs;
 
-import DB_OBJs.CONTROLLERS.UserController;
-import MODEL.User;
+import CONTROLLERS.UserController;
 import VIEWs.DashBoardGUI;
-import VIEWs.LoginFormGUI;
 import VIEWs.RegisterFormGUI;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
-import java.awt.*;
 import java.awt.event.*;
 
 public class UserManagementPanel extends JPanel{

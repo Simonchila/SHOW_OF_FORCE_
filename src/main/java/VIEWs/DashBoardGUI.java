@@ -7,7 +7,7 @@ import java.awt.*;
 
 public class DashBoardGUI extends JFrame {
 
-    private User user;
+    public User user;
     private CardLayout cardLayout;
     private JPanel cardPanel;
 
@@ -24,12 +24,12 @@ public class DashBoardGUI extends JFrame {
             case "admin":
                 AdminPanel adminPanel = new AdminPanel(this);
                 UserManagementPanel userManagementPanel = new UserManagementPanel(this);
-                AuditLogPanel auditLogPanel = new AuditLogPanel(this);
+                //AuditLogPanel auditLogPanel = new AuditLogPanel(this);
                 VehicleManagementPanel vehicleManagementPanel = new VehicleManagementPanel(this);
 
                 cardPanel.add(adminPanel, "AdminPanel");
                 cardPanel.add(userManagementPanel, "UserManagementPanel");
-                cardPanel.add(auditLogPanel, "AuditLogPanel");
+                //cardPanel.add(auditLogPanel, "AuditLogPanel");
                 cardPanel.add(vehicleManagementPanel, "VehicleManagementPanel");
 
                 cardLayout.show(cardPanel, "AdminPanel");

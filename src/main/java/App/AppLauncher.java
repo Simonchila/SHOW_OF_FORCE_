@@ -4,9 +4,12 @@ import MODEL.User;
 import VIEWs.DashBoardGUI;
 import VIEWs.LoginFormGUI;
 import VIEWs.PANELs.AdminPanel;
+import VIEWs.PANELs.AuditLogPanel;
+import VIEWs.PANELs.GuardsPanel;
 import VIEWs.PANELs.UserManagementPanel;
 
 import javax.swing.*;
+import java.util.Set;
 
 public class AppLauncher {
     public static void main(String[] args) {
@@ -16,15 +19,17 @@ public class AppLauncher {
         // app launcher
         SwingUtilities.invokeLater(() -> {
             // Create an instance of DashBoardGUI
-            //DashBoardGUI dashboard = new DashBoardGUI(new User("newuser3", "password", "admin"));
-            new LoginFormGUI().setVisible(true);
+            DashBoardGUI dashboard = new DashBoardGUI(new User("newuser3", "password", "admin"));
+
+            // main statement to run project
+            //new LoginFormGUI().setVisible(true);
+
 
             // Create an instance of AdminPanel and pass the dashboard
-            // AdminPanel adminPanel = new AdminPanel(dashboard);
-            // UserManagementPanel USP = new UserManagementPanel();
+            //AdminPanel adminPanel = new AdminPanel(dashboard);
+            GuardsPanel USP = new GuardsPanel(dashboard);
 
 
-            /* Set up the frame
             JFrame frame = new JFrame("Admin Panel");
             frame.setContentPane(USP);
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -32,7 +37,6 @@ public class AppLauncher {
             frame.setLocationRelativeTo(null);  // Center the frame
             frame.setVisible(true);
 
-             */
         });
     }
 }

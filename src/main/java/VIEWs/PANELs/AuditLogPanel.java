@@ -1,19 +1,11 @@
 package VIEWs.PANELs;
 
+import CONTROLLERS.AuditController;
 import VIEWs.DashBoardGUI;
 
 import javax.swing.*;
 import javax.swing.table.*;
 import java.awt.event.*;
-import java.io.File;
-
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.pdmodel.PDPage;
-import org.apache.pdfbox.pdmodel.font.PDFont;
-import org.apache.pdfbox.pdmodel.font.PDType1Font;
-import org.apache.pdfbox.pdmodel.PDPageContentStream;
-
-import static Constants.CommonConstants.*;
 
 public class AuditLogPanel extends JPanel{
 
@@ -294,95 +286,15 @@ public class AuditLogPanel extends JPanel{
         }
     }
 
-    private void ExportLogButtonActionPerformed(java.awt.event.ActionEvent evt) {
-        JFileChooser fileChooser = new JFileChooser();
-        fileChooser.setDialogTitle("Save PDF");
-        int userSelection = fileChooser.showSaveDialog(this);
-
-        if (userSelection == JFileChooser.APPROVE_OPTION) {
-            File fileToSave = fileChooser.getSelectedFile();
-
-            try (PDDocument document = new PDDocument()) {
-                PDPage page = new PDPage();
-                document.addPage(page);
-
-                PDPageContentStream contentStream = new PDPageContentStream(document, page);
-                PDFont font = PDType1Font.HELVETICA;
-                float fontSize = 12;
-                float leading = 1.5f * fontSize;
-
-                float margin = 50;
-                float yStart = page.getMediaBox().getHeight() - margin;
-                float xStart = margin;
-                float yPosition = yStart;
-
-                contentStream.beginText();
-                contentStream.setFont(font, fontSize);
-                contentStream.newLineAtOffset(xStart, yPosition);
-
-                // Header
-                for (int col = 0; col < AuditLogTable.getColumnCount(); col++) {
-                    contentStream.showText(AuditLogTable.getColumnName(col) + "  ");
-                }
-                contentStream.newLineAtOffset(0, -leading);
-
-                // Rows
-                for (int row = 0; row < AuditLogTable.getRowCount(); row++) {
-                    for (int col = 0; col < AuditLogTable.getColumnCount(); col++) {
-                        Object val = AuditLogTable.getValueAt(row, col);
-                        contentStream.showText((val == null ? "" : val.toString()) + "  ");
-                    }
-                    contentStream.newLineAtOffset(0, -leading);
-                }
-
-                contentStream.endText();
-                contentStream.close();
-
-                document.save(fileToSave + ".pdf");
-                JOptionPane.showMessageDialog(this, "Exported to PDF successfully!");
-            } catch (Exception e) {
-                e.printStackTrace();
-                JOptionPane.showMessageDialog(this, "Error exporting PDF: " + e.getMessage());
-            }
-        }
+    private void ExportLogButtonActionPerformed(ActionEvent evt) {
+        // Call the controller method with the necessary view components
+        AuditController.exportLogFile(this, AuditLogTable);  // Passing the parent frame (this) and JTable
     }
 
     private void dumpDbButtonActionPerformed(java.awt.event.ActionEvent evt) {
-        JFileChooser fileChooser = new JFileChooser();
-        fileChooser.setDialogTitle("Save SQL Backup File");
-        int userSelection = fileChooser.showSaveDialog(this);
-
-        if (userSelection == JFileChooser.APPROVE_OPTION) {
-            File fileToSave = fileChooser.getSelectedFile();
-            String backupFilePath = fileToSave.getAbsolutePath();
-
-            // DB credentials
-            String dbUser = DB_USERNAME;
-            String dbPass = DB_PASSWORD;
-            String dbName = DB_URL;
-            String dbHost = "localhost"; // replace if needed
-
-            // Build command
-            String dumpCommand = String.format(
-                    "mysqldump -h%s -u%s -p%s %s -r \"%s.sql\"",
-                    dbHost, dbUser, dbPass, dbName, backupFilePath
-            );
-
-            try {
-                Process runtimeProcess = Runtime.getRuntime().exec(dumpCommand);
-                int processComplete = runtimeProcess.waitFor();
-
-                if (processComplete == 0) {
-                    JOptionPane.showMessageDialog(this, "Database backup successful!");
-                } else {
-                    JOptionPane.showMessageDialog(this, "Could not create backup.");
-                }
-
-            } catch (Exception e) {
-                e.printStackTrace();
-                JOptionPane.showMessageDialog(this, "Error during backup: " + e.getMessage());
-            }
-        }
+        // Call the controller method with the necessary parent frame
+        AuditController.dumpDB(this);  // Passing the parent frame (this)
     }
+
 }
 

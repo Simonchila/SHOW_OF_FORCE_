@@ -1,6 +1,6 @@
-package DB_OBJs.CONTROLLERS;
+package CONTROLLERS;
 
-import DB_OBJs.Security.SecurityUtilsController;
+import CONTROLLERS.Security.SecurityUtilsController;
 
 import java.sql.*;
 import static Constants.CommonConstants.*;

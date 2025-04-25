@@ -12,4 +12,8 @@ public class CommonConstants {
     public static final String DB_URL = "jdbc:mariadb://127.0.0.1:3306/VEHICLE_TRACKER_DB";
     public static final String DB_USERNAME = "Tracker_Admin";
     public static final String DB_PASSWORD = "admin123";
+
+    // Vonage API Credentials
+    public static final String API_KEY = "a536a80a";
+    public static final String API_SECT = "vo5fX7hrRKixhRdI";
 }

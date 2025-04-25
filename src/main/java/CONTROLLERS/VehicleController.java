@@ -1,9 +1,10 @@
-package DB_OBJs.CONTROLLERS;
+package CONTROLLERS;
 
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
+import static CONTROLLERS.MessageController.sendBlackListedSMS;
 import static Constants.CommonConstants.*;
 
 public class VehicleController {
@@ -101,20 +102,64 @@ public class VehicleController {
         return logs;
     }
 
-    public static boolean addVehicle(String make, String model, String yearText, String licensePlate) throws NumberFormatException, SQLException {
-        int year = Integer.parseInt(yearText); // throws NumberFormatException if invalid
+    public static void addVehicle(String licensePlate, int loggedBy, String ipAddress) {
+        try {
+            String dbURL = DB_URL;
+            String dbUser = DB_USERNAME;
+            String dbPass = DB_PASSWORD;
 
-        Connection conn = DriverManager.getConnection(DB_URL, DB_USERNAME, DB_PASSWORD);
-        String sql = "INSERT INTO vehicles (make, model, year, licensePlate) VALUES (?, ?, ?, ?)";
-        PreparedStatement stmt = conn.prepareStatement(sql);
-        stmt.setString(1, make);
-        stmt.setString(2, model);
-        stmt.setInt(3, year);
-        stmt.setString(4, licensePlate);
-        stmt.executeUpdate();
-        conn.close();
+            Connection conn = DriverManager.getConnection(dbURL, dbUser, dbPass);
 
-        return true;
+            // Step 1: Check vehicle status
+            String statusQuery = "SELECT Status FROM VehicleLog WHERE LicensePlate = ? ORDER BY EntryTime DESC LIMIT 1";
+            PreparedStatement statusStmt = conn.prepareStatement(statusQuery);
+            statusStmt.setString(1, licensePlate);
+            ResultSet statusRs = statusStmt.executeQuery();
+
+            String currentStatus = "Unknown";
+            if (statusRs.next()) {
+                currentStatus = statusRs.getString("Status");
+            }
+
+            // Step 2: Insert vehicle log
+            String insertSQL = "INSERT INTO VehicleLog (LicensePlate, EntryTime, Status, LoggedBy, IpAddress) VALUES (?, NOW(), ?, ?, ?)";
+            PreparedStatement insertStmt = conn.prepareStatement(insertSQL);
+            insertStmt.setString(1, licensePlate);
+            insertStmt.setString(2, currentStatus.equals("BlackListed") ? "BlackListed" : "Parked");
+            insertStmt.setInt(3, loggedBy);
+            insertStmt.setString(4, ipAddress);
+
+            insertStmt.executeUpdate();
+
+            statusRs.close();
+            statusStmt.close();
+            insertStmt.close();
+            conn.close();
+
+
+            // get the Phone Number
+            String phoneQuery = "SELECT PhoneNumber FROM User WHERE UserId = ?";
+            PreparedStatement phoneStmt = conn.prepareStatement(phoneQuery);
+            phoneStmt.setInt(1, loggedBy);
+            ResultSet phoneRs = phoneStmt.executeQuery();
+
+            String phoneNumber = null;
+            if (phoneRs.next()) {
+                phoneNumber = phoneRs.getString("PhoneNumber");
+            }
+
+            phoneStmt.close();
+            phoneRs.close();
+
+            // If blacklisted, notify
+            if (currentStatus.equals("BlackListed") && phoneNumber != null) {
+                sendBlackListedSMS(licensePlate, phoneNumber);
+            }
+
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public static boolean deleteVehicle(String licensePlate) throws SQLException {
