@@ -1,5 +1,6 @@
 package CONTROLLERS;
 
+import MODEL.AuditLog;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
@@ -9,6 +10,12 @@ import org.apache.pdfbox.pdmodel.font.Standard14Fonts;
 
 import javax.swing.*;
 import java.io.File;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.util.ArrayList;
+import java.util.List;
 
 import static Constants.CommonConstants.*;
 
@@ -104,5 +111,39 @@ public class AuditController {
                 JOptionPane.showMessageDialog(parentPanel, "Error exporting PDF: " + e.getMessage());
             }
         }
+    }
+
+    public static List<AuditLog> fetchAllLogs() throws Exception {
+        List<AuditLog> auditLogs = new ArrayList<>();
+
+        String query = """
+        SELECT u.Username, 
+               a.Timestamp, 
+               a.Action, 
+               a.Details
+           FROM AuditLog a
+           JOIN User u ON a.UserId = u.UserId
+           ORDER BY a.Timestamp DESC;
+        """;
+
+        try (Connection conn = DriverManager.getConnection(DB_URL, DB_USERNAME, DB_PASSWORD);
+             PreparedStatement stmt = conn.prepareStatement(query);
+             ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                AuditLog log = new AuditLog(
+                        rs.getString("Username"),
+                        rs.getString("Timestamp"),
+                        rs.getString("Action"),
+                        rs.getString("Details")
+                );
+                auditLogs.add(log);
+            }
+
+        } catch (Exception e) {
+            throw new Exception("Failed to fetch audit logs: " + e.getMessage(), e);
+        }
+
+        return auditLogs;
     }
 }

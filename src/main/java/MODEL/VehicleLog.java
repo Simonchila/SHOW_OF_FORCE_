@@ -1,33 +1,28 @@
 package MODEL;
 
-import java.time.LocalDateTime;
-
 public class VehicleLog {
-    private final int logId;
-    private final String licensePlate;
-    private final LocalDateTime entryTime;
-    private LocalDateTime exitTime; // Nullable
-    private final int guardId;
+    private String licensePlate;
+    private String entryTime;
+    private String exitTime;
     private String status;
+    private String loggedBy;
+    private String ipAddress;
 
-    public VehicleLog(int logId, String licensePlate, LocalDateTime entryTime, LocalDateTime exitTime, int guardId, String status) {
-        this.logId = logId;
+    // Constructor
+    public VehicleLog(String licensePlate, String entryTime, String exitTime, String status, String loggedBy, String ipAddress) {
         this.licensePlate = licensePlate;
         this.entryTime = entryTime;
         this.exitTime = exitTime;
-        this.guardId = guardId;
         this.status = status;
+        this.loggedBy = loggedBy;
+        this.ipAddress = ipAddress;
     }
 
-    // Getters and setters
-    public int getLogId() { return logId; }
+    // Getters
     public String getLicensePlate() { return licensePlate; }
-    public LocalDateTime getEntryTime() { return entryTime; }
-    public LocalDateTime getExitTime() { return exitTime; }
-    public int getGuardId() { return guardId; }
+    public String getEntryTime() { return entryTime; }
+    public String getExitTime() { return exitTime; }
     public String getStatus() { return status; }
-
-    public void setExitTime(LocalDateTime exitTime) { this.exitTime = exitTime; }
-    public void setStatus(String status) { this.status = status; }
+    public String getLoggedBy() { return loggedBy; }
+    public String getIpAddress() { return ipAddress; }
 }
-

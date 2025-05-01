@@ -1,162 +1,278 @@
 package VIEWs.PANELs;
 
+import CONTROLLERS.VehicleController;
+import MODEL.Vehicle;
+import VIEWs.FORMs.BaseFrame;
 import VIEWs.FORMs.DashBoardGUI;
-
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
-import java.awt.event.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.util.List;
 
-public class ViewersPanel extends JPanel{
+public class ViewersPanel extends JPanel {
 
-    private DashBoardGUI dashboard;
-    private JButton LogOutButton;
-    private JLabel VehicleManagementSystemLabel;
-    private JLabel fromLabel;
-    private JTextField fromTextField;
-    private JScrollPane jScrollPane2;
-    private JButton searchButton;
-    private JTextField searchTextField;
-    private JComboBox<String> statusCombox;
-    private JLabel statusLabel;
+    private final DashBoardGUI dashboard;
+    private JTable vehicleTable;
+    private JTextField searchField;
+    private JTextField fromDateField;
     private JTextField toDateField;
-    private JLabel toLabel;
-    private JTable vehicleManagementSystem;
+    private JComboBox<String> statusComboBox;
 
     public ViewersPanel(DashBoardGUI dashboard) {
         this.dashboard = dashboard;
-        addComponents();
+        setLayout(new BorderLayout());
+        setBackground(new Color(240, 240, 240));
+        setBorder(new EmptyBorder(15, 15, 15, 15));
+
+        // Create header panel
+        add(createHeaderPanel(), BorderLayout.NORTH);
+
+        // Create center panel with search filters and table
+        add(createCenterPanel(), BorderLayout.CENTER);
+
+        // Create footer panel with action buttons
+        add(createFooterPanel(), BorderLayout.SOUTH);
+
+        // Populate table with initial data
+        populateVehicleTable();
     }
 
-    private void addComponents() {
-        jScrollPane2 = new JScrollPane();
-        vehicleManagementSystem = new JTable();
-        searchTextField = new JTextField();
-        searchButton = new JButton("SEARCH");
-        toLabel = new JLabel("To:");
-        toDateField = new JTextField();
-        fromLabel = new JLabel("From:");
-        fromTextField = new JTextField();
-        statusLabel = new JLabel("Status:");
-        statusCombox = new JComboBox<>(new String[]{"All", "Entered", "Exited", "Pending"});
-        VehicleManagementSystemLabel = new JLabel("VEHICLE MANAGEMENT SYSTEM");
-        LogOutButton = new JButton("LOG OUT");
+    private JPanel createHeaderPanel() {
+        JPanel headerPanel = new JPanel(new BorderLayout());
+        headerPanel.setBackground(new Color(240, 240, 240));
+        headerPanel.setBorder(new EmptyBorder(0, 0, 20, 0));
 
-        setLayout(new GroupLayout(this));
-        DefaultTableModel model = new DefaultTableModel(
-                new Object[][]{
-                        {null, null, null, null, null},
-                        {null, null, null, null, null},
-                        {null, null, null, null, null},
-                        {null, null, null, null, null}
-                },
-                new String[]{"Guard ID", "LicensePlate", "EntryTime", "ExitTime", "Status"}
+        // Title
+        JLabel titleLabel = new JLabel("VEHICLE MANAGEMENT SYSTEM");
+        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 18));
+        JPanel titlePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        titlePanel.add(titleLabel);
+        titlePanel.setBackground(new Color(240, 240, 240));
+
+        // Logout button
+        JButton logoutButton = new JButton("LOG OUT");
+        logoutButton.addActionListener(this::logoutAction);
+        logoutButton.setPreferredSize(new Dimension(100, 30));
+
+        headerPanel.add(titlePanel, BorderLayout.WEST);
+        headerPanel.add(logoutButton, BorderLayout.EAST);
+
+        return headerPanel;
+    }
+
+    private JPanel createCenterPanel() {
+        JPanel centerPanel = new JPanel(new BorderLayout());
+        centerPanel.setBorder(new EmptyBorder(0, 0, 10, 0));
+
+        // Add search/filter panel at the top
+        centerPanel.add(createSearchFilterPanel(), BorderLayout.NORTH);
+
+        // Add table in the center
+        centerPanel.add(createTablePanel(), BorderLayout.CENTER);
+
+        return centerPanel;
+    }
+
+    private JPanel createSearchFilterPanel() {
+        JPanel searchFilterPanel = new JPanel();
+        searchFilterPanel.setLayout(new BoxLayout(searchFilterPanel, BoxLayout.X_AXIS));
+        searchFilterPanel.setBackground(new Color(240, 240, 240));
+        searchFilterPanel.setBorder(new EmptyBorder(0, 0, 15, 0));
+
+        // Search components
+        JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 5));
+        searchPanel.setBackground(new Color(240, 240, 240));
+        searchPanel.add(new JLabel("Search:"));
+        searchField = new JTextField(20);
+        searchField.setToolTipText("Search by license plate or guard ID");
+        searchField.addActionListener(this::searchAction);
+        searchPanel.add(searchField);
+
+        JButton searchButton = new JButton("SEARCH");
+        searchButton.addActionListener(this::searchAction);
+        searchButton.setPreferredSize(new Dimension(100, 25));
+        searchPanel.add(searchButton);
+
+        // Date filters
+        JPanel datePanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 5));
+        datePanel.setBackground(new Color(240, 240, 240));
+        datePanel.add(new JLabel("Date Range:"));
+        datePanel.add(new JLabel("From:"));
+        fromDateField = new JTextField(10);
+        fromDateField.setToolTipText("Enter start date (YYYY-MM-DD)");
+        datePanel.add(fromDateField);
+        datePanel.add(new JLabel("To:"));
+        toDateField = new JTextField(10);
+        toDateField.setToolTipText("Enter end date (YYYY-MM-DD)");
+        datePanel.add(toDateField);
+
+        // Status filter
+        JPanel statusPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 5));
+        statusPanel.setBackground(new Color(240, 240, 240));
+        statusPanel.add(new JLabel("Status:"));
+        statusComboBox = new JComboBox<>(new String[]{"All", "Entered", "Exited", "Pending"});
+        statusComboBox.addActionListener(this::statusFilterAction);
+        statusComboBox.setPreferredSize(new Dimension(120, 25));
+        statusPanel.add(statusComboBox);
+
+        // Add all panels to main filter panel with glue for spacing
+        searchFilterPanel.add(searchPanel);
+        searchFilterPanel.add(Box.createHorizontalGlue());
+        searchFilterPanel.add(datePanel);
+        searchFilterPanel.add(Box.createHorizontalGlue());
+        searchFilterPanel.add(statusPanel);
+
+        return searchFilterPanel;
+    }
+
+    private JPanel createTablePanel() {
+        JPanel tablePanel = new JPanel(new BorderLayout());
+        tablePanel.setBorder(BorderFactory.createTitledBorder("Vehicle Records"));
+
+        // Create table with model
+        vehicleTable = new JTable(createTableModel());
+        vehicleTable.setFillsViewportHeight(true);
+        vehicleTable.setRowHeight(25);
+        vehicleTable.setAutoCreateRowSorter(true);
+
+        tablePanel.add(new JScrollPane(vehicleTable), BorderLayout.CENTER);
+
+        return tablePanel;
+    }
+
+    private JPanel createFooterPanel() {
+        JPanel footerPanel = new JPanel();
+        footerPanel.setLayout(new BoxLayout(footerPanel, BoxLayout.X_AXIS));
+        footerPanel.setBackground(new Color(240, 240, 240));
+        footerPanel.setBorder(new EmptyBorder(15, 0, 0, 0));
+
+        // Add horizontal glue to center buttons
+        footerPanel.add(Box.createHorizontalGlue());
+
+        JButton refreshBtn = new JButton("REFRESH");
+        refreshBtn.addActionListener(e -> populateVehicleTable());
+        styleFooterButton(refreshBtn);
+
+        JButton exportBtn = new JButton("EXPORT DATA");
+        exportBtn.addActionListener(this::exportDataAction);
+        styleFooterButton(exportBtn);
+
+        JButton printBtn = new JButton("PRINT REPORT");
+        printBtn.addActionListener(this::printReportAction);
+        styleFooterButton(printBtn);
+
+        footerPanel.add(refreshBtn);
+        footerPanel.add(Box.createHorizontalStrut(20));
+        footerPanel.add(exportBtn);
+        footerPanel.add(Box.createHorizontalStrut(20));
+        footerPanel.add(printBtn);
+
+        footerPanel.add(Box.createHorizontalGlue());
+
+        return footerPanel;
+    }
+
+    private void styleFooterButton(JButton button) {
+        button.setPreferredSize(new Dimension(150, 35));
+        button.setMaximumSize(new Dimension(150, 35));
+        button.setFont(new Font("Segoe UI", Font.BOLD, 12));
+    }
+
+    private DefaultTableModel createTableModel() {
+        return new DefaultTableModel(
+                new Object[][]{},
+                new String[]{"Guard ID", "Permit ID", "License Plate", "Entry Time", "Exit Time", "Status"}
         ) {
             Class<?>[] types = new Class[]{
-                    Integer.class, String.class, String.class, String.class, String.class
+                    Integer.class, Integer.class, String.class, String.class, String.class, String.class
             };
+
+            @Override
             public Class<?> getColumnClass(int columnIndex) {
                 return types[columnIndex];
             }
-        };
-        vehicleManagementSystem.setModel(model);
-        jScrollPane2.setViewportView(vehicleManagementSystem);
 
-        fromTextField.addActionListener(this::fromTextFieldActionPerformed);
-        searchButton.addActionListener(this::searchButtonActionPerformed);
-        searchTextField.addActionListener(this::searchTextFieldActionPerformed);
-        statusCombox.addActionListener(this::statusComboxActionPerformed);
-        LogOutButton.setText("LOG OUT");
-        LogOutButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                LogOutButtonActionPerformed(evt);
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false; // Make table non-editable
             }
-        });
-
-        GroupLayout layout = (GroupLayout) getLayout();
-        layout.setHorizontalGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                .addGroup(layout.createSequentialGroup()
-                        .addGap(20)
-                        .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                                .addComponent(jScrollPane2, GroupLayout.PREFERRED_SIZE, 940, GroupLayout.PREFERRED_SIZE)
-                                .addGroup(layout.createSequentialGroup()
-                                        .addComponent(searchTextField, GroupLayout.PREFERRED_SIZE, 138, GroupLayout.PREFERRED_SIZE)
-                                        .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                                        .addComponent(searchButton)
-                                        .addGap(30)
-                                        .addComponent(toLabel)
-                                        .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                                        .addComponent(toDateField, GroupLayout.PREFERRED_SIZE, 100, GroupLayout.PREFERRED_SIZE)
-                                        .addGap(30)
-                                        .addComponent(fromLabel)
-                                        .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                                        .addComponent(fromTextField, GroupLayout.PREFERRED_SIZE, 100, GroupLayout.PREFERRED_SIZE)
-                                        .addGap(30)
-                                        .addComponent(statusLabel)
-                                        .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                                        .addComponent(statusCombox, GroupLayout.PREFERRED_SIZE, 100, GroupLayout.PREFERRED_SIZE))
-                                .addGroup(GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                                        .addComponent(VehicleManagementSystemLabel)
-                                        .addGap(300)
-                                        .addComponent(LogOutButton)))
-                        .addContainerGap(30, Short.MAX_VALUE))
-        );
-        layout.setVerticalGroup(layout.createSequentialGroup()
-                .addGap(20)
-                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-                        .addComponent(VehicleManagementSystemLabel)
-                        .addComponent(LogOutButton))
-                .addGap(20)
-                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-                        .addComponent(searchTextField, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE)
-                        .addComponent(searchButton)
-                        .addComponent(toLabel)
-                        .addComponent(toDateField, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE)
-                        .addComponent(fromLabel)
-                        .addComponent(fromTextField, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE)
-                        .addComponent(statusLabel)
-                        .addComponent(statusCombox, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE))
-                .addGap(20)
-                .addComponent(jScrollPane2, GroupLayout.PREFERRED_SIZE, 360, GroupLayout.PREFERRED_SIZE)
-                .addGap(20)
-        );
+        };
     }
 
-    private void fromTextFieldActionPerformed(ActionEvent evt) {
-        // logic here if needed
+    private void populateVehicleTable() {
+        DefaultTableModel model = (DefaultTableModel) vehicleTable.getModel();
+        model.setRowCount(0); // Clear existing data
+
+        try {
+            List<Vehicle> vehicles = VehicleController.fetchAll();
+            for (Vehicle vehicle : vehicles) {
+                model.addRow(new Object[]{
+                        vehicle.getGuardId(),
+                        vehicle.getPermitId(),
+                        vehicle.getLicensePlate(),
+                        vehicle.getEntryTime(),
+                        vehicle.getExitTime(),
+                        vehicle.getStatus()
+                });
+            }
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Error loading vehicle data: " + e.getMessage(),
+                    "Database Error",
+                    JOptionPane.ERROR_MESSAGE
+            );
+            e.printStackTrace();
+        }
     }
 
-    private void searchTextFieldActionPerformed(ActionEvent evt) {
-        performSearch(searchTextField.getText().trim());
-    }
-
-    private void searchButtonActionPerformed(ActionEvent evt) {
-        String searchQuery = searchTextField.getText().trim();
-        if (!searchQuery.isEmpty()) {
-            performSearch(searchQuery);
+    private void searchAction(ActionEvent e) {
+        String query = searchField.getText().trim();
+        if (!query.isEmpty()) {
+            TableRowSorter<TableModel> sorter = new TableRowSorter<>(vehicleTable.getModel());
+            vehicleTable.setRowSorter(sorter);
+            sorter.setRowFilter(RowFilter.regexFilter("(?i)" + query));
         } else {
-            JOptionPane.showMessageDialog(this, "Please enter a search query", "Error", JOptionPane.ERROR_MESSAGE);
+            vehicleTable.setRowSorter(null);
         }
     }
 
-    private void statusComboxActionPerformed(ActionEvent evt) {
-        // Optional: update table based on status filter
+    private void statusFilterAction(ActionEvent e) {
+        String selectedStatus = (String) statusComboBox.getSelectedItem();
+        if (!"All".equals(selectedStatus)) {
+            TableRowSorter<TableModel> sorter = new TableRowSorter<>(vehicleTable.getModel());
+            vehicleTable.setRowSorter(sorter);
+            sorter.setRowFilter(RowFilter.regexFilter("(?i)" + selectedStatus, 4)); // Column 4 is Status
+        } else {
+            vehicleTable.setRowSorter(null);
+        }
     }
 
-    private void LogOutButtonActionPerformed(ActionEvent evt) {
-        // For example, log out the user and navigate back to the login screen
-        int option = JOptionPane.showConfirmDialog(this, "Are you sure you want to log out?", "Log Out", JOptionPane.YES_NO_OPTION);
+    private void exportDataAction(ActionEvent e) {
+        // Implement export functionality
+        JOptionPane.showMessageDialog(this, "Export functionality will be implemented here");
+    }
+
+    private void printReportAction(ActionEvent e) {
+        // Implement print functionality
+        JOptionPane.showMessageDialog(this, "Print functionality will be implemented here");
+    }
+
+    private void logoutAction(ActionEvent e) {
+        int option = JOptionPane.showConfirmDialog(
+                this,
+                "Are you sure you want to log out?",
+                "Log Out",
+                JOptionPane.YES_NO_OPTION
+        );
+
         if (option == JOptionPane.YES_OPTION) {
-            // Perform actual log out actions here (e.g., reset session, navigate to login screen)
-            dashboard.switchToPanel("LoginPanel");
+            dashboard.dispose();
+            new BaseFrame().setVisible(true);
         }
-    }
-
-    private void performSearch(String query) {
-        DefaultTableModel model = (DefaultTableModel) vehicleManagementSystem.getModel();
-        TableRowSorter<TableModel> sorter = new TableRowSorter<>(model);
-        vehicleManagementSystem.setRowSorter(sorter);
-        sorter.setRowFilter(RowFilter.regexFilter("(?i)" + query));
     }
 }

@@ -1,300 +1,250 @@
 package VIEWs.PANELs;
 
 import CONTROLLERS.AuditController;
+import MODEL.AuditLog;
+import VIEWs.FORMs.BaseFrame;
 import VIEWs.FORMs.DashBoardGUI;
-
 import javax.swing.*;
-import javax.swing.table.*;
-import java.awt.event.*;
+import javax.swing.border.EmptyBorder;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableModel;
+import javax.swing.table.TableRowSorter;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.List;
 
-public class AuditLogPanel extends JPanel{
+public class AuditLogPanel extends JPanel {
 
-    // Variables declaration - do not modify
-    private DashBoardGUI dashboard;
-    private JTextField AdminDashBoardLabel;
-    private JButton ExportLogButton;
-    private JButton dumpDbButton;
-    private JPanel AuditLog;
-    private JTextField AuditLogLabel;
-    private JTable AuditLogTable;
-    private JButton LogOutButton;
-    private JButton UserManagementButton;
-    private JButton VehicleLogButton;
-    private JButton VehicleManagementButton;
-    private JLabel GoToLabel;
-    private JScrollPane jScrollPane3;
-    private JButton searchButton;
-    private JTextField searchTextField;
+    private final DashBoardGUI dashboard;
+    private JTable auditLogTable;
+    private JTextField searchField;
 
     public AuditLogPanel(DashBoardGUI dashboard) {
         this.dashboard = dashboard;
-        addComponents();
+        setLayout(new BorderLayout());
+        setBackground(new Color(240, 240, 240));
+        setBorder(new EmptyBorder(15, 15, 15, 15));
+
+        // Create header panel
+        add(createHeaderPanel(), BorderLayout.NORTH);
+
+        // Create center panel with table
+        add(createCenterPanel(), BorderLayout.CENTER);
+
+        // Create footer panel with action buttons
+        add(createFooterPanel(), BorderLayout.SOUTH);
+
+        // Populate table with initial data
+        //populateAuditLogTable();
     }
 
-    private void addComponents() {
+    private JPanel createHeaderPanel() {
+        JPanel headerPanel = new JPanel(new BorderLayout());
+        headerPanel.setBackground(new Color(240, 240, 240));
+        headerPanel.setBorder(new EmptyBorder(0, 0, 20, 0));
 
-        AuditLog = new JPanel();
-        VehicleManagementButton = new JButton();
-        UserManagementButton = new JButton();
-        GoToLabel = new JLabel();
-        jScrollPane3 = new JScrollPane();
-        AuditLogTable = new JTable();
-        searchTextField = new JTextField();
-        searchButton = new JButton();
-        VehicleLogButton = new JButton();
-        ExportLogButton = new JButton();
-        dumpDbButton = new JButton();
-        AuditLogLabel = new JTextField();
-        LogOutButton = new JButton();
-        AdminDashBoardLabel = new JTextField();
+        // Title
+        JLabel titleLabel = new JLabel("AUDIT LOG SYSTEM");
+        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 18));
+        JPanel titlePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        titlePanel.add(titleLabel);
+        titlePanel.setBackground(new Color(240, 240, 240));
 
-        VehicleManagementButton.setText("VEHICLE MANAGEMENT");
-        VehicleManagementButton.addActionListener(new ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                VehicleManagementButtonActionPerformed(evt);
-            }
-        });
+        // Navigation buttons
+        JPanel navPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+        navPanel.setBackground(new Color(240, 240, 240));
 
-        UserManagementButton.setText("USER  MANAGEMENT");
-        UserManagementButton.addActionListener(e -> dashboard.switchToPanel("UserManagementPanel"));
-        GoToLabel.setText("GO TO:");
+        JButton adminDashboardBtn = createNavButton("ADMIN DASHBOARD", e -> dashboard.switchToPanel(new AdminPanel(dashboard)));
+        JButton userManagementBtn = createNavButton("USER MANAGEMENT", e -> dashboard.switchToPanel(new UserManagementPanel(dashboard)));
+        JButton vehicleLogBtn = createNavButton("VEHICLE LOGS", e -> dashboard.switchToPanel(new ViewersPanel(dashboard)));
 
+        navPanel.add(adminDashboardBtn);
+        navPanel.add(userManagementBtn);
+        navPanel.add(vehicleLogBtn);
 
-        AuditLogTable.setModel(new javax.swing.table.DefaultTableModel(
-                new Object [][] {
-                        {null, null, null},
-                        {null, null, null},
-                        {null, null, null},
-                        {null, null, null}
-                },
-                new String [] {
-                        "USERNAME", "ACTION", "TIME"
-                }
+        // Logout button
+        JButton logoutButton = new JButton("LOG OUT");
+        logoutButton.addActionListener(this::logoutAction);
+        logoutButton.setPreferredSize(new Dimension(100, 30));
+
+        headerPanel.add(titlePanel, BorderLayout.WEST);
+        headerPanel.add(navPanel, BorderLayout.CENTER);
+        headerPanel.add(logoutButton, BorderLayout.EAST);
+
+        return headerPanel;
+    }
+
+    private JButton createNavButton(String text, ActionListener listener) {
+        JButton button = new JButton(text);
+        button.addActionListener(listener);
+        button.setMargin(new Insets(2, 5, 2, 5));
+        button.setFocusPainted(false);
+        return button;
+    }
+
+    private JPanel createCenterPanel() {
+        JPanel centerPanel = new JPanel(new BorderLayout());
+        centerPanel.setBorder(new EmptyBorder(0, 0, 10, 0));
+
+        // Add search panel at the top
+        centerPanel.add(createSearchPanel(), BorderLayout.NORTH);
+
+        // Add table in the center
+        centerPanel.add(createTablePanel(), BorderLayout.CENTER);
+
+        return centerPanel;
+    }
+
+    private JPanel createSearchPanel() {
+        JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
+        searchPanel.setBackground(new Color(240, 240, 240));
+        searchPanel.setBorder(new EmptyBorder(0, 0, 15, 0));
+
+        searchField = new JTextField(25);
+        searchField.setToolTipText("Search by username, action, or time");
+        searchField.addActionListener(this::searchAction);
+
+        JButton searchButton = new JButton("SEARCH");
+        searchButton.addActionListener(this::searchAction);
+        searchButton.setPreferredSize(new Dimension(100, 25));
+
+        searchPanel.add(new JLabel("Search:"));
+        searchPanel.add(searchField);
+        searchPanel.add(searchButton);
+
+        return searchPanel;
+    }
+
+    private JPanel createTablePanel() {
+        JPanel tablePanel = new JPanel(new BorderLayout());
+        tablePanel.setBorder(BorderFactory.createTitledBorder("Audit Log Records"));
+
+        // Create table with model
+        auditLogTable = new JTable(createTableModel());
+        auditLogTable.setFillsViewportHeight(true);
+        auditLogTable.setRowHeight(25);
+        auditLogTable.setAutoCreateRowSorter(true);
+
+        tablePanel.add(new JScrollPane(auditLogTable), BorderLayout.CENTER);
+
+        return tablePanel;
+    }
+
+    private JPanel createFooterPanel() {
+        JPanel footerPanel = new JPanel();
+        footerPanel.setLayout(new BoxLayout(footerPanel, BoxLayout.X_AXIS));
+        footerPanel.setBackground(new Color(240, 240, 240));
+        footerPanel.setBorder(new EmptyBorder(15, 0, 0, 0));
+
+        // Add horizontal glue to center buttons
+        footerPanel.add(Box.createHorizontalGlue());
+
+        JButton refreshBtn = new JButton("REFRESH");
+        refreshBtn.addActionListener(e -> populateAuditLogTable());
+        styleFooterButton(refreshBtn);
+
+        JButton exportBtn = new JButton("EXPORT LOGS");
+        exportBtn.addActionListener(this::exportLogsAction);
+        styleFooterButton(exportBtn);
+
+        JButton dumpBtn = new JButton("DUMP DATABASE");
+        dumpBtn.addActionListener(this::dumpDatabaseAction);
+        styleFooterButton(dumpBtn);
+
+        footerPanel.add(refreshBtn);
+        footerPanel.add(Box.createHorizontalStrut(20));
+        footerPanel.add(exportBtn);
+        footerPanel.add(Box.createHorizontalStrut(20));
+        footerPanel.add(dumpBtn);
+
+        footerPanel.add(Box.createHorizontalGlue());
+
+        return footerPanel;
+    }
+
+    private void styleFooterButton(JButton button) {
+        button.setPreferredSize(new Dimension(150, 35));
+        button.setMaximumSize(new Dimension(150, 35));
+        button.setFont(new Font("Segoe UI", Font.BOLD, 12));
+    }
+
+    private DefaultTableModel createTableModel() {
+        return new DefaultTableModel(
+                new Object[][]{},
+                new String[]{"Username", "Action", "Timestamp", "Details"}
         ) {
-            Class[] types = new Class [] {
-                    java.lang.Integer.class, java.lang.String.class, java.lang.String.class
+            Class<?>[] types = new Class[]{
+                    String.class, String.class, String.class, String.class
             };
 
-            public Class getColumnClass(int columnIndex) {
-                return types [columnIndex];
+            @Override
+            public Class<?> getColumnClass(int columnIndex) {
+                return types[columnIndex];
             }
-        });
-        jScrollPane3.setViewportView(AuditLogTable);
 
-        searchTextField.setText("search here");
-
-        searchButton.setText("SEARCH");
-        searchButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                searchButtonActionPerformed(evt);
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false; // Make table non-editable
             }
-        });
-
-        VehicleLogButton.setText("VEHICLE LOGS");
-        VehicleLogButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                VehicleLogButtonActionPerformed(evt);
-            }
-        });
-
-        AuditLogLabel.setText("       AUDIT LOG");
-
-        LogOutButton.setText("LOG OUT");
-        LogOutButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                LogOutButtonActionPerformed(evt);
-            }
-        });
-
-        AdminDashBoardLabel.setText("    ADMIN DASHBOARD");
-        AdminDashBoardLabel.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                AdminDashBoardLabelActionPerformed(evt);
-            }
-        });
-
-        ExportLogButton.setText("EXPORT");
-        ExportLogButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                ExportLogButtonActionPerformed(evt);
-            }
-        });
-
-        dumpDbButton.setText("DUMP");
-        dumpDbButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                dumpDbButtonActionPerformed(evt);
-            }
-        });
-
-        javax.swing.GroupLayout AuditLogLayout = new javax.swing.GroupLayout(AuditLog);
-        AuditLog.setLayout(AuditLogLayout);
-        AuditLogLayout.setHorizontalGroup(
-                AuditLogLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, AuditLogLayout.createSequentialGroup()
-                                .addGroup(AuditLogLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                        .addGroup(AuditLogLayout.createSequentialGroup()
-                                                .addGap(95, 95, 95)
-                                                .addComponent(searchTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 107, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                                .addComponent(searchButton)
-                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                                .addComponent(ExportLogButton)
-                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED))
-                                        .addGroup(AuditLogLayout.createSequentialGroup()
-                                                .addGap(52, 52, 52)
-                                                .addComponent(AdminDashBoardLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 180, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                                .addGap(213, 213, 213)
-                                                .addGroup(AuditLogLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                                        .addComponent(AuditLogLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 120, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                                        .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, AuditLogLayout.createSequentialGroup()
-                                                                .addComponent(LogOutButton)
-                                                                .addGap(16, 16, 16)))
-                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 193, Short.MAX_VALUE)))
-                                .addGroup(AuditLogLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                        .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, AuditLogLayout.createSequentialGroup()
-                                                .addComponent(VehicleLogButton)
-                                                .addGap(100, 100, 100))
-                                        .addGroup(AuditLogLayout.createSequentialGroup()
-                                                .addGroup(AuditLogLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                                        .addGroup(AuditLogLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                                                                .addComponent(UserManagementButton)
-                                                                .addGroup(AuditLogLayout.createSequentialGroup()
-                                                                        .addComponent(GoToLabel)
-                                                                        .addGap(29, 29, 29)
-                                                                        .addComponent(VehicleManagementButton)))
-                                                        .addComponent(dumpDbButton))
-                                                .addGap(85, 85, 85))))
-        );
-        AuditLogLayout.setVerticalGroup(
-                AuditLogLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addGroup(AuditLogLayout.createSequentialGroup()
-                                .addGap(24, 24, 24)
-                                .addGroup(AuditLogLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                        .addComponent(VehicleManagementButton)
-                                        .addComponent(GoToLabel)
-                                        .addComponent(AdminDashBoardLabel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addComponent(LogOutButton))
-                                .addGroup(AuditLogLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                        .addGroup(AuditLogLayout.createSequentialGroup()
-                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                                .addComponent(UserManagementButton)
-                                                .addGap(15, 15, 15)
-                                                .addComponent(VehicleLogButton))
-                                        .addGroup(AuditLogLayout.createSequentialGroup()
-                                                .addGap(31, 31, 31)
-                                                .addComponent(AuditLogLabel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 11, Short.MAX_VALUE)
-                                .addGroup(AuditLogLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                        .addComponent(searchTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addComponent(searchButton)
-                                        .addComponent(ExportLogButton)
-                                        .addComponent(dumpDbButton))
-                                .addGap(477, 477, 477))
-        );
-
-        AuditLogTable.setModel(new javax.swing.table.DefaultTableModel(
-                new Object [][] {
-                        {null, null, null},
-                        {null, null, null},
-                        {null, null, null},
-                        {null, null, null}
-                },
-                new String [] {
-                        "USERNAME", "ACTION", "TIME"
-                }
-        ) {
-            Class[] types = new Class [] {
-                    java.lang.Integer.class, java.lang.String.class, java.lang.String.class
-            };
-
-            public Class getColumnClass(int columnIndex) {
-                return types [columnIndex];
-            }
-        });
-        jScrollPane3.setViewportView(AuditLogTable);
-
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
-        this.setLayout(layout);
-        layout.setHorizontalGroup(
-                layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addGroup(layout.createSequentialGroup()
-                                .addGap(42, 42, 42)
-                                .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 1009, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addContainerGap(40, Short.MAX_VALUE))
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                .addGroup(layout.createSequentialGroup()
-                                        .addContainerGap()
-                                        .addComponent(AuditLog, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
-        );
-        layout.setVerticalGroup(
-                layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                                .addContainerGap(183, Short.MAX_VALUE)
-                                .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(41, 41, 41))
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                .addGroup(layout.createSequentialGroup()
-                                        .addContainerGap()
-                                        .addComponent(AuditLog, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addContainerGap(14, Short.MAX_VALUE)))
-        );
+        };
     }
 
-    private void VehicleManagementButtonActionPerformed(ActionEvent evt) {
-        dashboard.switchToPanel("VehicleManagementPanel");
+    private void populateAuditLogTable() {
+        DefaultTableModel model = (DefaultTableModel) auditLogTable.getModel();
+        model.setRowCount(0); // Clear existing data
+
+        try {
+            List<AuditLog> logs = AuditController.fetchAllLogs();
+            for (AuditLog log : logs) {
+                model.addRow(new Object[]{
+                        log.getUsername(),
+                        log.getAction(),
+                        log.getTimestamp(),
+                        log.getDetails()
+                });
+            }
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Error loading audit logs: " + e.getMessage(),
+                    "Database Error",
+                    JOptionPane.ERROR_MESSAGE
+            );
+            e.printStackTrace();
+        }
     }
 
-    private void VehicleLogButtonActionPerformed(ActionEvent evt) {
-        dashboard.switchToPanel("VehicleLogPanel");
-    }
-
-    // Handle search button click
-    private void searchButtonActionPerformed(ActionEvent evt) {
-        String searchQuery = searchTextField.getText().trim();
-        if (!searchQuery.isEmpty()) {
-            performSearch(searchQuery);
+    private void searchAction(ActionEvent e) {
+        String query = searchField.getText().trim();
+        if (!query.isEmpty()) {
+            TableRowSorter<TableModel> sorter = new TableRowSorter<>(auditLogTable.getModel());
+            auditLogTable.setRowSorter(sorter);
+            sorter.setRowFilter(RowFilter.regexFilter("(?i)" + query));
         } else {
-            JOptionPane.showMessageDialog(this, "Please enter a search query", "Error", JOptionPane.ERROR_MESSAGE);
+            auditLogTable.setRowSorter(null);
         }
     }
 
-    private void AdminDashBoardLabelActionPerformed(ActionEvent evt){
-        dashboard.switchToPanel("AdminPanel");
+    private void exportLogsAction(ActionEvent e) {
+        AuditController.exportLogFile(this, auditLogTable);
     }
 
-    // Perform the actual search/filtering logic
-    private void performSearch(String searchQuery) {
-        // This could be the logic to search in the user management table
-        // For example, filter the rows based on the search query
-        // Assuming you have access to the table model or data
-
-        // Example of filtering logic:
-        DefaultTableModel model = (DefaultTableModel) AuditLogTable.getModel();
-        TableRowSorter<TableModel> sorter = new TableRowSorter<>(model);
-        AuditLogTable.setRowSorter(sorter);
-        sorter.setRowFilter(RowFilter.regexFilter(searchQuery));
+    private void dumpDatabaseAction(ActionEvent e) {
+        AuditController.dumpDB(this);
     }
 
-    private void LogOutButtonActionPerformed(ActionEvent evt) {
-        // For example, log out the user and navigate back to the login screen
-        int option = JOptionPane.showConfirmDialog(this, "Are you sure you want to log out?", "Log Out", JOptionPane.YES_NO_OPTION);
+    private void logoutAction(ActionEvent e) {
+        int option = JOptionPane.showConfirmDialog(
+                this,
+                "Are you sure you want to log out?",
+                "Log Out",
+                JOptionPane.YES_NO_OPTION
+        );
+
         if (option == JOptionPane.YES_OPTION) {
-            // Perform actual log out actions here (e.g., reset session, navigate to login screen)
-            dashboard.switchToPanel("LoginPanel");
+            dashboard.dispose();
+            new BaseFrame().setVisible(true);
         }
     }
-
-    private void ExportLogButtonActionPerformed(ActionEvent evt) {
-        // Call the controller method with the necessary view components
-        AuditController.exportLogFile(this, AuditLogTable);  // Passing the parent frame (this) and JTable
-    }
-
-    private void dumpDbButtonActionPerformed(java.awt.event.ActionEvent evt) {
-        // Call the controller method with the necessary parent frame
-        AuditController.dumpDB(this);  // Passing the parent frame (this)
-    }
-
 }
-

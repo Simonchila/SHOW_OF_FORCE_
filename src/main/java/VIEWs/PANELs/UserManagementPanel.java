@@ -1,342 +1,331 @@
 package VIEWs.PANELs;
 
 import CONTROLLERS.UserController;
+import MODEL.User;
+import VIEWs.FORMs.BaseFrame;
 import VIEWs.FORMs.DashBoardGUI;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
-import java.awt.event.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.List;
 
-public class UserManagementPanel extends JPanel{
+public class UserManagementPanel extends JPanel {
 
-    // Variables declaration - do not modify
-    private DashBoardGUI dashboard;
-    private JTextField AdminDashBoardLabel;
-    private JToggleButton AuditLogButton;
-    private JButton addUserButton;
-    private JButton DeleteUser;
-    private JLabel GoToLabel;
-    private JPanel UserManagementPanel;
-    private JButton VehicleManagementButton;
+    private final DashBoardGUI dashboard;
+    private JTable userTable;
+    private JTextField searchField;
     private JComboBox<String> filterComboBox;
-    private JLabel filterbyLabel;
-    private JScrollPane jScrollPane1;
-    private JTextField jTextField15;
-    private JButton logOutButton;
-    private JButton searchButton;
-    private JTextField searchTextField;
-    private JTable userManagementTable;
-    // End of variables declaration
 
     public UserManagementPanel(DashBoardGUI dashboard) {
         this.dashboard = dashboard;
-        addComponents();
+        setLayout(new BorderLayout());
+        setBackground(new Color(240, 240, 240));
+        setBorder(new EmptyBorder(15, 15, 15, 15));
+
+        // Create header panel
+        add(createHeaderPanel(), BorderLayout.NORTH);
+
+        // Create center panel with table
+        add(createCenterPanel(), BorderLayout.CENTER);
+
+        // Create footer panel with action buttons
+        add(createFooterPanel(), BorderLayout.SOUTH);
+
+        // Populate table with initial data
+        populateUserTable();
     }
 
-    private void addComponents() {
+    private JPanel createHeaderPanel() {
+        JPanel headerPanel = new JPanel(new BorderLayout());
+        headerPanel.setBackground(new Color(240, 240, 240));
+        headerPanel.setBorder(new EmptyBorder(0, 0, 20, 0));
 
-        UserManagementPanel = new JPanel();
-        VehicleManagementButton = new JButton();
-        AuditLogButton = new JToggleButton();
-        GoToLabel = new JLabel();
-        jScrollPane1 = new JScrollPane();
-        userManagementTable = new JTable();
-        searchTextField = new JTextField();
-        searchButton = new JButton();
-        filterComboBox = new JComboBox<>();
-        AdminDashBoardLabel = new JTextField();
-        filterbyLabel = new JLabel();
-        jTextField15 = new JTextField();
-        logOutButton = new JButton();
-        addUserButton = new JButton();
-        DeleteUser = new JButton();
+        // Title
+        JLabel titleLabel = new JLabel("USER MANAGEMENT");
+        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 18));
+        JPanel titlePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        titlePanel.add(titleLabel);
+        titlePanel.setBackground(new Color(240, 240, 240));
 
-        VehicleManagementButton.setText("VEHICLE MANAGEMENT");
-        VehicleManagementButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                VehicleManagementButtonActionPerformed(evt);
-            }
-        });
+        // Navigation buttons
+        JPanel navPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+        navPanel.setBackground(new Color(240, 240, 240));
 
-        AuditLogButton.setText("AUDIT LOGS");
-        AuditLogButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                AuditLogButtonActionPerformed(evt);
-            }
-        });
+        JButton adminDashboardBtn = createNavButton("ADMIN DASHBOARD",
+                e -> dashboard.switchToPanel(new AdminPanel(dashboard)));
+        JButton auditLogBtn = createNavButton("AUDIT LOGS",
+                e -> dashboard.switchToPanel(new AuditLogPanel(dashboard)));
+        JButton vehicleBtn = createNavButton("VEHICLES",
+                e -> dashboard.switchToPanel(new VehicleManagementPanel(dashboard)));
 
-        GoToLabel.setText("GO TO:");
+        navPanel.add(adminDashboardBtn);
+        navPanel.add(auditLogBtn);
+        navPanel.add(vehicleBtn);
 
-        userManagementTable.setModel(new javax.swing.table.DefaultTableModel(
-                new Object [][] {
-                        {null, null, null, null, null},
-                        {null, null, null, null, null},
-                        {null, null, null, null, null},
-                        {null, null, null, null, null}
-                },
-                new String [] {
-                        "USERNAME", "ROLE", "LAST PASSWORD CHANGE", "FAILED LOGIN ATTEMPTS", "ACCOUNT STATUS"
-                }
+        // Logout button
+        JButton logoutButton = new JButton("LOG OUT");
+        logoutButton.addActionListener(this::logoutAction);
+        logoutButton.setPreferredSize(new Dimension(100, 30));
+
+        headerPanel.add(titlePanel, BorderLayout.WEST);
+        headerPanel.add(navPanel, BorderLayout.CENTER);
+        headerPanel.add(logoutButton, BorderLayout.EAST);
+
+        return headerPanel;
+    }
+
+    private JButton createNavButton(String text, ActionListener listener) {
+        JButton button = new JButton(text);
+        button.addActionListener(listener);
+        button.setMargin(new Insets(2, 5, 2, 5));
+        button.setFocusPainted(false);
+        return button;
+    }
+
+    private JPanel createCenterPanel() {
+        JPanel centerPanel = new JPanel(new BorderLayout());
+        centerPanel.setBorder(new EmptyBorder(0, 0, 10, 0));
+
+        // Add search/filter panel at the top
+        centerPanel.add(createSearchFilterPanel(), BorderLayout.NORTH);
+
+        // Add table in the center
+        centerPanel.add(createTablePanel(), BorderLayout.CENTER);
+
+        return centerPanel;
+    }
+
+    private JPanel createSearchFilterPanel() {
+        JPanel searchFilterPanel = new JPanel();
+        searchFilterPanel.setLayout(new BoxLayout(searchFilterPanel, BoxLayout.X_AXIS));
+        searchFilterPanel.setBackground(new Color(240, 240, 240));
+        searchFilterPanel.setBorder(new EmptyBorder(0, 0, 15, 0));
+
+        // Search components
+        JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 5));
+        searchPanel.setBackground(new Color(240, 240, 240));
+        searchPanel.add(new JLabel("Search:"));
+        searchField = new JTextField(20);
+        searchField.setToolTipText("Search by username or role");
+        searchField.addActionListener(this::searchAction);
+        searchPanel.add(searchField);
+
+        JButton searchButton = new JButton("SEARCH");
+        searchButton.addActionListener(this::searchAction);
+        searchButton.setPreferredSize(new Dimension(100, 25));
+        searchPanel.add(searchButton);
+
+        // Filter components
+        JPanel filterPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 5));
+        filterPanel.setBackground(new Color(240, 240, 240));
+        filterPanel.add(new JLabel("Filter by:"));
+        filterComboBox = new JComboBox<>(new String[]{"All Users", "Active", "Disabled", "Admin", "Guard", "Viewers"});
+        filterComboBox.addActionListener(this::filterAction);
+        filterComboBox.setPreferredSize(new Dimension(120, 25));
+        filterPanel.add(filterComboBox);
+
+        // Add all panels to main filter panel with glue for spacing
+        searchFilterPanel.add(searchPanel);
+        searchFilterPanel.add(Box.createHorizontalGlue());
+        searchFilterPanel.add(filterPanel);
+
+        return searchFilterPanel;
+    }
+
+    private JPanel createTablePanel() {
+        JPanel tablePanel = new JPanel(new BorderLayout());
+        tablePanel.setBorder(BorderFactory.createTitledBorder("User Records"));
+
+        // Create table with model
+        userTable = new JTable(createTableModel());
+        userTable.setFillsViewportHeight(true);
+        userTable.setRowHeight(25);
+        userTable.setAutoCreateRowSorter(true);
+
+        tablePanel.add(new JScrollPane(userTable), BorderLayout.CENTER);
+
+        return tablePanel;
+    }
+
+    private JPanel createFooterPanel() {
+        JPanel footerPanel = new JPanel();
+        footerPanel.setLayout(new BoxLayout(footerPanel, BoxLayout.X_AXIS));
+        footerPanel.setBackground(new Color(240, 240, 240));
+        footerPanel.setBorder(new EmptyBorder(15, 0, 0, 0));
+
+        // Add horizontal glue to center buttons
+        footerPanel.add(Box.createHorizontalGlue());
+
+        JButton refreshBtn = new JButton("REFRESH");
+        refreshBtn.addActionListener(e -> populateUserTable());
+        styleFooterButton(refreshBtn);
+
+        JButton addUserBtn = new JButton("ADD USER");
+        addUserBtn.addActionListener(this::addUserAction);
+        styleFooterButton(addUserBtn);
+
+        JButton deleteUserBtn = new JButton("DELETE USER");
+        deleteUserBtn.addActionListener(this::deleteUserAction);
+        styleFooterButton(deleteUserBtn);
+
+        footerPanel.add(refreshBtn);
+        footerPanel.add(Box.createHorizontalStrut(20));
+        footerPanel.add(addUserBtn);
+        footerPanel.add(Box.createHorizontalStrut(20));
+        footerPanel.add(deleteUserBtn);
+
+        footerPanel.add(Box.createHorizontalGlue());
+
+        return footerPanel;
+    }
+
+    private void styleFooterButton(JButton button) {
+        button.setPreferredSize(new Dimension(150, 35));
+        button.setMaximumSize(new Dimension(150, 35));
+        button.setFont(new Font("Segoe UI", Font.BOLD, 12));
+    }
+
+    private DefaultTableModel createTableModel() {
+        return new DefaultTableModel(
+                new Object[][]{},
+
+                new String[]{"Id", "Username", "Role", "Last Password Change", "Failed Logins", "Status", "Phone Number"}
         ) {
-            Class[] types = new Class [] {
-                    java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.Integer.class, java.lang.String.class
-            };
-            boolean[] canEdit = new boolean [] {
-                    false, false, false, false, false
+            final Class<?>[] types = new Class[]{
+                    Integer.class, String.class, String.class, String.class, Integer.class, String.class, String.class
             };
 
-            public Class getColumnClass(int columnIndex) {
-                return types [columnIndex];
+            @Override
+            public Class<?> getColumnClass(int columnIndex) {
+                return types[columnIndex];
             }
 
-            public boolean isCellEditable(int rowIndex, int columnIndex) {
-                return canEdit [columnIndex];
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
             }
-        });
-        jScrollPane1.setViewportView(userManagementTable);
-        if (userManagementTable.getColumnModel().getColumnCount() > 0) {
-            userManagementTable.getColumnModel().getColumn(0).setResizable(false);
-            userManagementTable.getColumnModel().getColumn(1).setResizable(false);
-            userManagementTable.getColumnModel().getColumn(2).setResizable(false);
-            userManagementTable.getColumnModel().getColumn(3).setResizable(false);
-            userManagementTable.getColumnModel().getColumn(4).setResizable(false);
-        }
-
-        searchTextField.setText("Search here");
-        searchTextField.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                searchTextFieldActionPerformed(evt);
-            }
-        });
-
-        searchButton.setText("SEARCH");
-        searchButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                searchButtonActionPerformed(evt);
-            }
-        });
-
-        filterComboBox.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
-        filterComboBox.addComponentListener(new java.awt.event.ComponentAdapter() {
-            public void componentHidden(java.awt.event.ComponentEvent evt) {
-                filterComboBoxComponentHidden(evt);
-            }
-        });
-
-        AdminDashBoardLabel.setText("ADMIN DASHBOARD");
-        AdminDashBoardLabel.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                AdminDashBoardLabelActionPerformed(evt);
-            }
-        });
-
-        filterbyLabel.setText("FILTER BY");
-
-        jTextField15.setText("           USER MANAGEMENT");
-        jTextField15.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jTextField15ActionPerformed(evt);
-            }
-        });
-
-        logOutButton.setText("LOG OUT");
-        logOutButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                LogOutButtonActionPerformed(evt);
-            }
-        });
-
-        addUserButton.setText("AddUser");
-        addUserButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                AddUserButtonActionPerformed(evt);
-            }
-        });
-
-        DeleteUser.setText("DeleteUser");
-        DeleteUser.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                DeleteUserActionPerformed(evt);
-            }
-        });
-
-        javax.swing.GroupLayout UserManagementPanelLayout = new javax.swing.GroupLayout(UserManagementPanel);
-        UserManagementPanel.setLayout(UserManagementPanelLayout);
-        UserManagementPanelLayout.setHorizontalGroup(
-                UserManagementPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addGroup(UserManagementPanelLayout.createSequentialGroup()
-                                .addContainerGap(30, Short.MAX_VALUE)
-                                .addGroup(UserManagementPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                        .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, UserManagementPanelLayout.createSequentialGroup()
-                                                .addGroup(UserManagementPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                                                        .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, UserManagementPanelLayout.createSequentialGroup()
-                                                                .addComponent(searchTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 104, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                                                .addComponent(searchButton)
-                                                                .addGap(39, 39, 39)
-                                                                .addComponent(addUserButton)
-                                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                                                .addComponent(DeleteUser)
-                                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                                                .addComponent(filterbyLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 74, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                                                .addGap(2, 2, 2)
-                                                                .addGroup(UserManagementPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                                                        .addComponent(filterComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                                                        .addComponent(AuditLogButton))
-                                                                .addGap(30, 30, 30))
-                                                        .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, UserManagementPanelLayout.createSequentialGroup()
-                                                                .addComponent(AdminDashBoardLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 156, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                                                .addGap(242, 242, 242)
-                                                                .addComponent(logOutButton)
-                                                                .addGap(151, 151, 151)
-                                                                .addComponent(GoToLabel)
-                                                                .addGap(18, 18, 18)
-                                                                .addComponent(VehicleManagementButton)))
-                                                .addGap(39, 39, 39))
-                                        .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, UserManagementPanelLayout.createSequentialGroup()
-                                                .addComponent(jTextField15, javax.swing.GroupLayout.PREFERRED_SIZE, 205, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                                .addGap(364, 364, 364))
-                                        .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, UserManagementPanelLayout.createSequentialGroup()
-                                                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 906, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                                .addGap(30, 30, 30))))
-        );
-        UserManagementPanelLayout.setVerticalGroup(
-                UserManagementPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addGroup(UserManagementPanelLayout.createSequentialGroup()
-                                .addGap(30, 30, 30)
-                                .addGroup(UserManagementPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                        .addComponent(VehicleManagementButton)
-                                        .addComponent(GoToLabel)
-                                        .addComponent(AdminDashBoardLabel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addComponent(logOutButton))
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(AuditLogButton)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addComponent(jTextField15, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(37, 37, 37)
-                                .addGroup(UserManagementPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                                        .addComponent(filterbyLabel)
-                                        .addComponent(filterComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addGroup(UserManagementPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                                .addComponent(searchTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                                .addComponent(searchButton)
-                                                .addComponent(addUserButton)
-                                                .addComponent(DeleteUser)))
-                                .addGap(18, 18, 18)
-                                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 436, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(21, 21, 21))
-        );
-
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
-        this.setLayout(layout);
-        layout.setHorizontalGroup(
-                layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addGroup(layout.createSequentialGroup()
-                                .addContainerGap()
-                                .addComponent(UserManagementPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-        );
-        layout.setVerticalGroup(
-                layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                                .addGap(0, 0, Short.MAX_VALUE)
-                                .addComponent(UserManagementPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-        );
+        };
     }
 
-    private void LogOutButtonActionPerformed(ActionEvent evt) {
-        // For example, log out the user and navigate back to the login screen
-        int option = JOptionPane.showConfirmDialog(this, "Are you sure you want to log out?", "Log Out", JOptionPane.YES_NO_OPTION);
-        if (option == JOptionPane.YES_OPTION) {
-            // Perform actual log out actions here (e.g., reset session, navigate to login screen)
-            dashboard.switchToPanel("LoginPanel");
+    private void populateUserTable() {
+        DefaultTableModel model = (DefaultTableModel) userTable.getModel();
+        model.setRowCount(0); // Clear existing data
+
+        try {
+            List<User> users = UserController.fetchAllUsers();
+            for (User user : users) {
+                String status = (Boolean) user.getStatus() ? "Disabled" : "Active";
+                model.addRow(new Object[]{
+                        user.getId(),
+                        user.getUsername(),
+                        user.getRole(),
+                        user.getLastPasswordChange(),
+                        user.getFailedLoginAttempts(),
+                        status,  // accountLocked
+                        user.getPhoneNumber()
+                });
+            }
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Error loading user data: " + e.getMessage(),
+                    "Database Error",
+                    JOptionPane.ERROR_MESSAGE
+            );
+            e.printStackTrace();
         }
     }
 
-    private void AuditLogButtonActionPerformed(ActionEvent evt) {
-        dashboard.switchToPanel("AuditLogPanel");
-    }
-
-    private void VehicleManagementButtonActionPerformed(ActionEvent evt) {
-        dashboard.switchToPanel("VehicleManagementPanel");
-    }
-
-    // Handle search when enter is pressed
-    private void searchTextFieldActionPerformed(ActionEvent evt) {
-        String searchQuery = searchTextField.getText().trim();
-        if (!searchQuery.isEmpty()) {
-            performSearch(searchQuery);
-        }
-    }
-
-    // Handle search button click
-    private void searchButtonActionPerformed(ActionEvent evt) {
-        String searchQuery = searchTextField.getText().trim();
-        if (!searchQuery.isEmpty()) {
-            performSearch(searchQuery);
+    private void searchAction(ActionEvent e) {
+        String query = searchField.getText().trim();
+        if (!query.isEmpty()) {
+            TableRowSorter<TableModel> sorter = new TableRowSorter<>(userTable.getModel());
+            userTable.setRowSorter(sorter);
+            sorter.setRowFilter(RowFilter.regexFilter("(?i)" + query));
         } else {
-            JOptionPane.showMessageDialog(this, "Please enter a search query", "Error", JOptionPane.ERROR_MESSAGE);
+            userTable.setRowSorter(null);
         }
     }
 
-    // Perform the actual search/filtering logic
-    private void performSearch(String searchQuery) {
-        // This could be the logic to search in the user management table
-        // For example, filter the rows based on the search query
-        // Assuming you have access to the table model or data
+    private void filterAction(ActionEvent e) {
+        String selectedFilter = (String) filterComboBox.getSelectedItem();
+        if (!"All Users".equals(selectedFilter)) {
+            TableRowSorter<TableModel> sorter = new TableRowSorter<>(userTable.getModel());
+            userTable.setRowSorter(sorter);
 
-        // Example of filtering logic:
-        DefaultTableModel model = (DefaultTableModel) userManagementTable.getModel();
-        TableRowSorter<TableModel> sorter = new TableRowSorter<>(model);
-        userManagementTable.setRowSorter(sorter);
-        sorter.setRowFilter(RowFilter.regexFilter(searchQuery));
-    }
-
-    // Handle filter combo box visibility changes (maybe reset filters when hidden)
-    private void filterComboBoxComponentHidden(ComponentEvent evt) {
-        // Reset filter when combo box is hidden (optional)
-        filterComboBox.setSelectedIndex(0); // Reset to default value
-    }
-
-    // Handle Admin Dashboard label action, possibly navigate to another panel
-    private void AdminDashBoardLabelActionPerformed(ActionEvent evt) {
-        // Navigate back to the Admin Dashboard panel
-        // This is just an example action; adjust as per your dashboard setup
-        dashboard.switchToPanel("AdminDashboardPanel");
-    }
-
-    // Handle JTextField 15 action, maybe used for the user management title or label
-    private void jTextField15ActionPerformed(ActionEvent evt) {
-        // For instance, display a message or perform an action when Enter is pressed
-        String currentText = jTextField15.getText().trim();
-        if (!currentText.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "You typed: " + currentText, "Info", JOptionPane.INFORMATION_MESSAGE);
+            int column = selectedFilter.equals("Active") || selectedFilter.equals("Disabled") ? 4 : 1;
+            sorter.setRowFilter(RowFilter.regexFilter("(?i)" + selectedFilter, column));
+        } else {
+            userTable.setRowSorter(null);
         }
     }
 
-    private void AddUserButtonActionPerformed(ActionEvent evt) {
-        // Implement logic to show RegisterFormGUI or add user
-        //new RegisterFormPanel(); // Example: Launch registration form
+    private void addUserAction(ActionEvent e) {
+        JOptionPane.showMessageDialog(this, "Add user functionality will be implemented here");
     }
 
-    private void DeleteUserActionPerformed(ActionEvent evt) {
-        int selectedRow = userManagementTable.getSelectedRow();
+    private void deleteUserAction(ActionEvent e) {
+        int selectedRow = userTable.getSelectedRow();
         if (selectedRow != -1) {
-            // Implement user deletion logic here
-            String username = userManagementTable.getValueAt(selectedRow, 0).toString();
-            // Use UserController to delete user by username
-            UserController.deleteUser(username);
-            ((DefaultTableModel) userManagementTable.getModel()).removeRow(selectedRow);
+            int modelRow = userTable.convertRowIndexToModel(selectedRow);
+            String username = (String) userTable.getModel().getValueAt(modelRow, 0);
+
+            int confirm = JOptionPane.showConfirmDialog(
+                    this,
+                    "Are you sure you want to delete user: " + username + "?",
+                    "Confirm Deletion",
+                    JOptionPane.YES_NO_OPTION
+            );
+
+            if (confirm == JOptionPane.YES_OPTION) {
+                try {
+                    boolean success = UserController.deleteUser(username);
+                    if (success) {
+                        populateUserTable();
+                    } else {
+                        JOptionPane.showMessageDialog(
+                                this,
+                                "Failed to delete user",
+                                "Error",
+                                JOptionPane.ERROR_MESSAGE
+                        );
+                    }
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(
+                            this,
+                            "Error deleting user: " + ex.getMessage(),
+                            "Error",
+                            JOptionPane.ERROR_MESSAGE
+                    );
+                }
+            }
         } else {
-            JOptionPane.showMessageDialog(this, "Please select a user to delete.");
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Please select a user to delete",
+                    "No Selection",
+                    JOptionPane.WARNING_MESSAGE
+            );
         }
     }
 
-    protected void showError(String message) {
-        JOptionPane.showMessageDialog(this, message, "Error", JOptionPane.ERROR_MESSAGE);
+    private void logoutAction(ActionEvent e) {
+        int option = JOptionPane.showConfirmDialog(
+                this,
+                "Are you sure you want to log out?",
+                "Log Out",
+                JOptionPane.YES_NO_OPTION
+        );
+
+        if (option == JOptionPane.YES_OPTION) {
+            dashboard.dispose();
+            new BaseFrame().setVisible(true);
+        }
     }
-
 }
-

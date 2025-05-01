@@ -1,5 +1,9 @@
 package CONTROLLERS;
 
+import MODEL.AuditLog;
+import MODEL.Vehicle;
+import MODEL.VehicleLog;
+
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -33,31 +37,6 @@ public class VehicleController {
         }
     }
 
-    public static List<String[]> getAllVehicleLogs() {
-        List<String[]> data = new ArrayList<>();
-        String query = """
-        SELECT v.LicensePlate, v.EntryTime, u.Username AS Guard
-        FROM VehicleLog v
-        JOIN User u ON v.LoggedBy = u.UserId
-        WHERE u.Role = 'Guard'
-    """;
-
-        try (Connection conn = DriverManager.getConnection(DB_URL, DB_USERNAME, DB_PASSWORD);
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(query)) {
-
-            while (rs.next()) {
-                data.add(new String[]{
-                        rs.getString("LicensePlate"),
-                        rs.getString("EntryTime"),
-                        rs.getString("Guard")
-                });
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return data;
-    }
 
     public static List<String[]> getFilteredVehicleLogs(String plateKeyword, String fromDate, String toDate, String status) {
         List<String[]> logs = new ArrayList<>();
@@ -172,4 +151,72 @@ public class VehicleController {
 
         return rows > 0;
     }
+
+    public static List<Vehicle> fetchAll() {
+        List<Vehicle> vehicles = new ArrayList<>();
+
+        String query = "SELECT * FROM Vehicle";
+
+        try {
+            Connection conn = DriverManager.getConnection(DB_URL, DB_USERNAME, DB_PASSWORD);
+
+             PreparedStatement stmt = conn.prepareStatement(query);
+             ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                vehicles.add(new Vehicle(
+                        rs.getInt("GuardID"),
+                        rs.getInt("PermitId"),
+                        rs.getString("LicensePlate"),
+                        rs.getString("EntryTime"),
+                        rs.getString("ExitTime"),
+                        rs.getString("Status")
+                ));
+            }
+
+        } catch (SQLException e) {
+            System.err.println("Error fetching vehicles: " + e.getMessage());
+        }
+
+        return vehicles;
+    }
+
+    public static List<VehicleLog> fetchAllVehicleLogs() throws Exception {
+        List<VehicleLog> logs = new ArrayList<>();
+
+        String query = """
+            SELECT v.LicensePlate, 
+                   v.EntryTime, 
+                   v.ExitTime, 
+                   IF(v.ExitTime IS NULL, 'Parked', 'Exited') AS Status,
+                   u.Username AS LoggedBy, 
+                   v.IpAddress
+            FROM VehicleLog v
+            JOIN User u ON v.LoggedBy = u.UserId
+            ORDER BY v.EntryTime DESC;
+        """;
+
+        try (Connection conn = DriverManager.getConnection(DB_URL, DB_USERNAME, DB_PASSWORD);
+             PreparedStatement stmt = conn.prepareStatement(query);
+             ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                VehicleLog log = new VehicleLog(
+                        rs.getString("LicensePlate"),
+                        rs.getString("EntryTime"),
+                        rs.getString("ExitTime"),
+                        rs.getString("Status"),
+                        rs.getString("LoggedBy"),
+                        rs.getString("IpAddress")
+                );
+                logs.add(log);
+            }
+
+        } catch (Exception ex) {
+            throw new Exception("Failed to fetch vehicle logs: " + ex.getMessage(), ex);
+        }
+
+        return logs;
+    }
+
 }

@@ -1,202 +1,186 @@
 package VIEWs.PANELs;
 
+import CONTROLLERS.VehicleController;
+import MODEL.Vehicle;
 import VIEWs.FORMs.BaseFrame;
 import VIEWs.FORMs.DashBoardGUI;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableModel;
+import javax.swing.table.TableRowSorter;
+import java.awt.*;
 import java.awt.event.*;
+import java.util.List;
 
 public class AdminPanel extends JPanel {
 
-    private DashBoardGUI dashboard;
-    private JPanel mainPanel;
-    private JTextField searchField;
-    private JTextField headerField;
-    private JLabel fromLabel;
-    private JTextField fromDateField;
-    private JTextField toDateField;
-    private JLabel toLabel;
-    private JTextField statusLabel;
-    private JComboBox<String> statusComboBox;
-    private JScrollPane tableScrollPane;
+    private final DashBoardGUI dashboard;
     private JTable vehicleTable;
-    private JButton userManagementButton;
-    private JLabel goToLabel;
-    private JButton auditLogsButton;
-    private JTextField dashboardLabel;
-    private JButton LogOutButton, searchButton;
+    private JTextField searchField;
 
     public AdminPanel(DashBoardGUI dashboard) {
         this.dashboard = dashboard;
-        addComponents();
+        setLayout(new BorderLayout());
+        setBackground(new Color(240, 240, 240));
+        setBorder(new EmptyBorder(15, 15, 15, 15));
+
+        // Create header panel
+        add(createHeaderPanel(), BorderLayout.NORTH);
+
+        // Create center panel with table
+        add(createTablePanel(), BorderLayout.CENTER);
+
+        // Create footer panel
+        add(createFooterPanel(), BorderLayout.SOUTH);
+
+        // Populate table with data
+        populateVehicleTable(vehicleTable);
     }
 
-    private void addComponents() {
-        mainPanel = new JPanel();
-        searchField = new JTextField("search here");
-        headerField = new JTextField("                        TABLE OF ALL VEHICLE");
-        searchButton = new JButton("SEARCH");
-        LogOutButton = new JButton("LOG OUT");
-        fromLabel = new JLabel("From:");
-        fromDateField = new JTextField();
-        toDateField = new JTextField();
-        toLabel = new JLabel("To:");
-        statusLabel = new JTextField("Status:");
-        statusComboBox = new JComboBox<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" });
+    private JPanel createHeaderPanel() {
+        JPanel headerPanel = new JPanel(new BorderLayout());
+        headerPanel.setBackground(new Color(240, 240, 240));
+        headerPanel.setBorder(new EmptyBorder(0, 0, 20, 0));
 
-        vehicleTable = new JTable(
-                new javax.swing.table.DefaultTableModel(
-                        new Object[][] {
-                                {null, null, null, null, null},
-                                {null, null, null, null, null},
-                                {null, null, null, null, null},
-                                {null, null, null, null, null}
-                        },
-                        new String[] { "Guard ID", "LicensePlate", "EntryTime", "ExitTime", "Status" }
-                ) {
-                    Class[] types = new Class[] {
-                            Integer.class, String.class, String.class, String.class, String.class
-                    };
-                    public Class<?> getColumnClass(int columnIndex) {
-                        return types[columnIndex];
-                    }
-                }
-        );
+        // Title and logout
+        JPanel titlePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JLabel titleLabel = new JLabel("ADMIN DASHBOARD");
+        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 18));
+        titlePanel.add(titleLabel);
+        titlePanel.setBackground(new Color(240, 240, 240));
 
-        tableScrollPane = new JScrollPane(vehicleTable);
+        JButton logoutButton = new JButton("LOG OUT");
+        logoutButton.addActionListener(this::logoutAction);
+        logoutButton.setPreferredSize(new Dimension(100, 30));
 
-        userManagementButton = new JButton("USER MANAGEMENT");
-        goToLabel = new JLabel("GO TO:");
-        auditLogsButton = new JButton("AUDIT LOGS");
-        dashboardLabel = new JTextField("     ADMIN DASHBOARD");
+        headerPanel.add(titlePanel, BorderLayout.WEST);
+        headerPanel.add(logoutButton, BorderLayout.EAST);
 
-        searchButton.addActionListener(e -> {
-            // Perform the search operation
-            String query = searchField.getText();
-            // Logic to filter vehicles based on search query
-        });
+        return headerPanel;
+    }
 
-        userManagementButton.addActionListener(e -> {
-            // Switch to User Management Panel
-            switchToUserManagementPanel();
-        });
+    private JPanel createTablePanel() {
+        JPanel tablePanel = new JPanel(new BorderLayout());
+        tablePanel.setBorder(BorderFactory.createTitledBorder("Vehicle Records"));
 
-        auditLogsButton.addActionListener(e -> {
-            // Switch to Audit Logs Panel
-            switchToAuditLogsPanel();
-        });
+        // Create table with model
+        vehicleTable = new JTable(createTableModel());
+        vehicleTable.setFillsViewportHeight(true);
+        vehicleTable.setRowHeight(25);
+        vehicleTable.setAutoCreateRowSorter(true);
 
-        LogOutButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                LogOutButtonActionPerformed(evt);
+        // Search panel
+        JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
+        searchPanel.setBorder(new EmptyBorder(0, 0, 10, 0));
+
+        searchField = new JTextField(20);
+        searchField.setToolTipText("Search by any field");
+
+        JButton searchButton = new JButton("SEARCH");
+        searchButton.addActionListener(this::searchAction);
+
+        // Date filter components
+        JLabel fromLabel = new JLabel("From:");
+        JTextField fromDateField = new JTextField(10);
+        JLabel toLabel = new JLabel("To:");
+        JTextField toDateField = new JTextField(10);
+
+        // Status filter
+        JLabel statusLabel = new JLabel("Status:");
+        JComboBox<String> statusCombo = new JComboBox<>(new String[]{"All", "Parked", "Exited"});
+
+        searchPanel.add(searchField);
+        searchPanel.add(searchButton);
+        searchPanel.add(new JSeparator(SwingConstants.VERTICAL));
+        searchPanel.add(fromLabel);
+        searchPanel.add(fromDateField);
+        searchPanel.add(toLabel);
+        searchPanel.add(toDateField);
+        searchPanel.add(new JSeparator(SwingConstants.VERTICAL));
+        searchPanel.add(statusLabel);
+        searchPanel.add(statusCombo);
+
+        tablePanel.add(searchPanel, BorderLayout.NORTH);
+        tablePanel.add(new JScrollPane(vehicleTable), BorderLayout.CENTER);
+
+        return tablePanel;
+    }
+
+    private DefaultTableModel createTableModel() {
+        return new DefaultTableModel(
+                new Object[][]{},
+                new String[]{"Guard ID", "Permit ID", "License Plate", "Entry Time", "Exit Time", "Status"}
+        ) {
+            @Override
+            public Class<?> getColumnClass(int columnIndex) {
+                return columnIndex == 0 ? Integer.class : String.class;
             }
-        });
-
-        // Add components to layout
-        GroupLayout layout = new GroupLayout(mainPanel);
-        mainPanel.setLayout(layout);
-        layout.setHorizontalGroup(
-                layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                        .addGroup(layout.createSequentialGroup()
-                                .addGap(27)
-                                .addComponent(tableScrollPane, GroupLayout.PREFERRED_SIZE, 972, GroupLayout.PREFERRED_SIZE)
-                                .addContainerGap(18, Short.MAX_VALUE))
-                        .addGroup(layout.createSequentialGroup()
-                                .addGap(73)
-                                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                                        .addGroup(layout.createSequentialGroup()
-                                                .addComponent(dashboardLabel, GroupLayout.PREFERRED_SIZE, 178, GroupLayout.PREFERRED_SIZE)
-                                                .addGap(184)
-                                                .addComponent(LogOutButton))
-                                        .addGroup(layout.createSequentialGroup()
-                                                .addComponent(searchField, GroupLayout.PREFERRED_SIZE, 126, GroupLayout.PREFERRED_SIZE)
-                                                .addGap(18)
-                                                .addComponent(searchButton)
-                                                .addGap(188)
-                                                .addComponent(fromLabel)
-                                                .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
-                                                .addComponent(fromDateField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                                                .addGap(30)
-                                                .addComponent(toLabel)
-                                                .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
-                                                .addComponent(toDateField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))))
-                        .addGroup(GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                                .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addComponent(statusLabel, GroupLayout.PREFERRED_SIZE, 62, GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(statusComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                                .addGap(89))
-                        .addGroup(GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                                .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addComponent(headerField, GroupLayout.PREFERRED_SIZE, 314, GroupLayout.PREFERRED_SIZE)
-                                .addGap(141)
-                                .addComponent(auditLogsButton, GroupLayout.PREFERRED_SIZE, 158, GroupLayout.PREFERRED_SIZE)
-                                .addGap(89))
-                        .addGroup(GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                                .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addComponent(goToLabel)
-                                .addGap(18)
-                                .addComponent(userManagementButton)
-                                .addGap(89))
-        );
-
-        layout.setVerticalGroup(
-                layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                        .addGroup(GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                                .addGap(27)
-                                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-                                        .addComponent(userManagementButton)
-                                        .addComponent(goToLabel)
-                                        .addComponent(dashboardLabel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                                        .addComponent(LogOutButton))
-                                .addGap(18)
-                                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-                                        .addComponent(headerField, GroupLayout.PREFERRED_SIZE, 35, GroupLayout.PREFERRED_SIZE)
-                                        .addComponent(auditLogsButton))
-                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-                                        .addComponent(searchField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                                        .addComponent(searchButton)
-                                        .addComponent(fromLabel)
-                                        .addComponent(fromDateField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                                        .addComponent(toLabel)
-                                        .addComponent(toDateField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                                        .addComponent(statusLabel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                                        .addComponent(statusComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-                                .addGap(18)
-                                .addComponent(tableScrollPane, GroupLayout.PREFERRED_SIZE, 541, GroupLayout.PREFERRED_SIZE)
-                                .addGap(32))
-        );
-
-        GroupLayout thisLayout = new GroupLayout(this);
-        this.setLayout(thisLayout);
-        thisLayout.setHorizontalGroup(
-                thisLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                        .addComponent(mainPanel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-        );
-        thisLayout.setVerticalGroup(
-                thisLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                        .addComponent(mainPanel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-        );
+        };
     }
 
-    private void switchToUserManagementPanel() {
+    private JPanel createFooterPanel() {
+        JPanel footerPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
+        footerPanel.setBackground(new Color(240, 240, 240));
 
+        JButton userManagementBtn = new JButton("USER MANAGEMENT");
+        userManagementBtn.addActionListener(e -> dashboard.switchToPanel(new UserManagementPanel(dashboard)));
+        userManagementBtn.setPreferredSize(new Dimension(180, 35));
+
+        JButton auditLogsBtn = new JButton("AUDIT LOGS");
+        auditLogsBtn.addActionListener(e -> dashboard.switchToPanel(new AuditLogPanel(dashboard)));
+        auditLogsBtn.setPreferredSize(new Dimension(180, 35));
+
+        footerPanel.add(userManagementBtn);
+        footerPanel.add(auditLogsBtn);
+
+        return footerPanel;
     }
 
-    private void switchToAuditLogsPanel() {
-    }
-
-    private void LogOutButtonActionPerformed(ActionEvent evt) {
-        int option = JOptionPane.showConfirmDialog(this, "Are you sure you want to log out?", "Log Out", JOptionPane.YES_NO_OPTION);
-        if (option == JOptionPane.YES_OPTION) {
-            // Close the current dashboard window
-            dashboard.dispose();
-
-            // Open the login frame again
-            BaseFrame loginFrame = new BaseFrame();
-            loginFrame.setVisible(true);
+    private void searchAction(ActionEvent e) {
+        String query = searchField.getText().trim();
+        if (!query.isEmpty()) {
+            TableRowSorter<TableModel> sorter = new TableRowSorter<>(vehicleTable.getModel());
+            vehicleTable.setRowSorter(sorter);
+            sorter.setRowFilter(RowFilter.regexFilter("(?i)" + query));
+        } else {
+            vehicleTable.setRowSorter(null);
         }
     }
 
+    private void logoutAction(ActionEvent e) {
+        int option = JOptionPane.showConfirmDialog(
+                this,
+                "Are you sure you want to log out?",
+                "Log Out",
+                JOptionPane.YES_NO_OPTION
+        );
+
+        if (option == JOptionPane.YES_OPTION) {
+            dashboard.dispose();
+            new BaseFrame().setVisible(true);
+        }
+    }
+
+    private void populateVehicleTable(JTable table) {
+        DefaultTableModel model = (DefaultTableModel) table.getModel();
+        model.setRowCount(0); // Clear existing rows
+
+        try {
+            List<Vehicle> vehicles = VehicleController.fetchAll();
+            for (Vehicle v : vehicles) {
+                model.addRow(new Object[]{
+                        v.getGuardId(),
+                        v.getPermitId(),
+                        v.getLicensePlate(),
+                        v.getEntryTime(),
+                        v.getExitTime(),
+                        v.getStatus()
+                });
+            }
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Error fetching vehicle data: " + e.getMessage());
+        }
+    }
 }

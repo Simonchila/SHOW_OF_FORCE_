@@ -1,6 +1,6 @@
 package CONTROLLERS;
 
-import CONTROLLERS.Security.SecurityUtilsController;
+import CONTROLLERS.SECURITYs.SecurityUtilsController;
 import MODEL.User;
 import java.sql.*;
 import static Constants.CommonConstants.*;
@@ -22,6 +22,7 @@ public class LoginController {
             int id = rs.getInt("UserId");
             String storedPassword = rs.getString("PasswordHash");
             String role = rs.getString("Role");
+            String lastPasswordChange = rs.getString("LastPasswordChange");
             int failedAttempts = rs.getInt("FailedLoginAttempts");
             boolean isLocked = rs.getBoolean("AccountLocked");
             String phoneNumber = rs.getString("phoneNUmber");
@@ -45,7 +46,7 @@ public class LoginController {
             }
 
             updateFailedAttempts(username, 0);
-            return new User(id, username, storedPassword, role, failedAttempts, false, phoneNumber);
+            return new User(id, username, storedPassword, role, lastPasswordChange, failedAttempts, isLocked, phoneNumber);
 
         } catch (SQLException e) {
             e.printStackTrace();

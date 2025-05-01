@@ -44,7 +44,7 @@ public class RegisterFormPanel extends JPanel {
         JPasswordField confirmPasswordField = new JPasswordField(20);
         styleField(confirmPasswordField);
 
-        JComboBox<String> roleComboBox = new JComboBox<>(new String[]{"Admin", "Guard"});
+        JComboBox<String> roleComboBox = new JComboBox<>(new String[]{"Admin", "Guard", "Viewer"});
         styleComboBox(roleComboBox);
 
         add(labeledComponent("Username:", usernameField));

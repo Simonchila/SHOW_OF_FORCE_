@@ -3,6 +3,7 @@ package VIEWs.FORMs;
 import MODEL.User;
 import VIEWs.PANELs.AdminPanel;
 import VIEWs.PANELs.GuardsPanel;
+import VIEWs.PANELs.ViewersPanel;
 
 import javax.swing.*;
 
@@ -19,13 +20,15 @@ public class DashBoardGUI extends JFrame {
         setLayout(new java.awt.BorderLayout());
 
         if ("Admin".equalsIgnoreCase(user.getRole())) {
-            setPanel(new AdminPanel(this));
+            switchToPanel(new AdminPanel(this));
         } else if ("Guard".equalsIgnoreCase(user.getRole())) {
-            setPanel(new GuardsPanel(this));
+            switchToPanel(new GuardsPanel(this));
+        } else {
+            switchToPanel(new ViewersPanel(this));
         }
     }
 
-    public void setPanel(JPanel panel) {
+    public void switchToPanel(JPanel panel) {
         getContentPane().removeAll();
         getContentPane().add(panel, java.awt.BorderLayout.CENTER);
         revalidate();
@@ -36,7 +39,4 @@ public class DashBoardGUI extends JFrame {
         return user;
     }
 
-    public void switchToPanel(String auditLogPanel) {
-
-    }
 }

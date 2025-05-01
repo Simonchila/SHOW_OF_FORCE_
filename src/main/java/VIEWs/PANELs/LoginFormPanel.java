@@ -61,6 +61,12 @@ public class LoginFormPanel extends JPanel {
 
                 if (success) {
                     User user = UserController.getUserByUsername(username);
+                    if (user == null) {
+                        MessageController.showToast(parentFrame, "Login failed: User not found.", Color.RED);
+                        return;
+                    }
+
+                    MessageController.showToast(parentFrame, "Login successful! Redirecting...", new Color(0, 200, 0));
                     parentFrame.onLoginSuccess(user);
                 } else {
                     MessageController.showToast(parentFrame, "Invalid username or password.", Color.RED);

@@ -7,7 +7,8 @@ import com.google.zxing.common.HybridBinarizer;
 import com.google.zxing.Result;
 
 import javax.imageio.ImageIO;
-import javax.swing.JOptionPane;
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -90,7 +91,7 @@ public class AdminController {
 
             // Save the image to a file
             File outputfile = new File(saveFile + ".png");
-            javax.imageio.ImageIO.write(image, "PNG", outputfile);
+            ImageIO.write(image, "PNG", outputfile);
 
             JOptionPane.showMessageDialog(null, "QR Code saved successfully at: " + outputfile.getAbsolutePath());
 
