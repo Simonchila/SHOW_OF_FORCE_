@@ -57,11 +57,11 @@ public class AuditLogPanel extends JPanel {
 
         JButton adminDashboardBtn = createNavButton("ADMIN DASHBOARD", e -> dashboard.switchToPanel(new AdminPanel(dashboard)));
         JButton userManagementBtn = createNavButton("USER MANAGEMENT", e -> dashboard.switchToPanel(new UserManagementPanel(dashboard)));
-        JButton vehicleLogBtn = createNavButton("VEHICLE LOGS", e -> dashboard.switchToPanel(new ViewersPanel(dashboard)));
+        JButton vehicleBtn = createNavButton("VEHICLES", e -> dashboard.switchToPanel(new VehicleManagementPanel(dashboard)));
 
         navPanel.add(adminDashboardBtn);
         navPanel.add(userManagementBtn);
-        navPanel.add(vehicleLogBtn);
+        navPanel.add(vehicleBtn);
 
         // Logout button
         JButton logoutButton = new JButton("LOG OUT");

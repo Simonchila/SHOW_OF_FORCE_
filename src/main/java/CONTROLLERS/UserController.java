@@ -66,8 +66,6 @@ public class UserController {
     }
 
     public static boolean checkUser(String username) {
-        initialize_db();
-
         String query = "SELECT 1 FROM User WHERE username = ?";
         try (
                 Connection conn = DriverManager.getConnection(DB_URL, DB_USERNAME, DB_PASSWORD);
@@ -82,9 +80,34 @@ public class UserController {
         }
     }
 
-    public static boolean deleteUser(String username) {
+    public static boolean addUser(String username, String role, String passwordHash, String phoneNumber) {
+        String query = "INSERT INTO User (Username, Role, PasswordHash, PhoneNumber) VALUES (?, ?, ?, ?)";
 
-        if (!checkUser(username)) return false; // User doesn't exist
+        try (Connection conn = DriverManager.getConnection(DB_URL, DB_USERNAME, DB_PASSWORD);
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+
+            stmt.setString(1, username);
+            stmt.setString(2, role);
+            stmt.setString(3, passwordHash);
+            if (phoneNumber != null && !phoneNumber.isEmpty()) {
+                stmt.setString(4, phoneNumber);
+            } else {
+                stmt.setNull(4, Types.VARCHAR);
+            }
+
+            int rowsAffected = stmt.executeUpdate();
+            return rowsAffected > 0;
+
+        } catch (SQLException e) {
+            System.err.println("SQL Error adding user: " + e.getMessage());
+            return false;
+        }
+    }
+
+    public static boolean deleteUser(String username) {
+        if (!checkUser(username)) {
+            return false; // User doesn't exist
+        }
 
         String query = "DELETE FROM User WHERE Username = ?";
         try (
@@ -93,13 +116,37 @@ public class UserController {
         ) {
             stmt.setString(1, username);
             int rowsAffected = stmt.executeUpdate();
-            return true;
+            return rowsAffected > 0; // Only return true if at least one row was deleted
 
         } catch (SQLException e) {
             e.printStackTrace();
             return false;
         }
     }
+
+/*    public static boolean deleteUser(String username) {
+        System.out.println("Attempting to delete user: " + username); // Debug
+
+        String query = "DELETE FROM User WHERE Username = ?";
+        try (Connection conn = DriverManager.getConnection(DB_URL, DB_USERNAME, DB_PASSWORD);
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+
+            stmt.setString(1, username.trim());
+            int rowsAffected = stmt.executeUpdate();
+            System.out.println("Rows affected: " + rowsAffected); // Debug
+
+            if (rowsAffected > 0) {
+                conn.commit(); // Explicit commit if needed
+                return true;
+            }
+            return false;
+
+        } catch (SQLException e) {
+            System.err.println("SQL Error deleting user: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }*/
 
     public static User getUserByUsername(String username) {
         initialize_db();

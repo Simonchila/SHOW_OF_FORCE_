@@ -128,11 +128,16 @@ public class AdminPanel extends JPanel {
         userManagementBtn.addActionListener(e -> dashboard.switchToPanel(new UserManagementPanel(dashboard)));
         userManagementBtn.setPreferredSize(new Dimension(180, 35));
 
+        JButton vehicleManagementBtn = new JButton("VEHICLE MANAGEMENT");
+        vehicleManagementBtn.addActionListener(e -> dashboard.switchToPanel(new VehicleManagementPanel(dashboard)));
+        vehicleManagementBtn.setPreferredSize(new Dimension(180, 35));
+
         JButton auditLogsBtn = new JButton("AUDIT LOGS");
         auditLogsBtn.addActionListener(e -> dashboard.switchToPanel(new AuditLogPanel(dashboard)));
         auditLogsBtn.setPreferredSize(new Dimension(180, 35));
 
         footerPanel.add(userManagementBtn);
+        footerPanel.add(vehicleManagementBtn);
         footerPanel.add(auditLogsBtn);
 
         return footerPanel;

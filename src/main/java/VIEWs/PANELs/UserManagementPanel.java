@@ -15,6 +15,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.List;
 
+import static CONTROLLERS.SECURITYs.SecurityUtilsController.hashPassword;
+
 public class UserManagementPanel extends JPanel {
 
     private final DashBoardGUI dashboard;
@@ -267,14 +269,68 @@ public class UserManagementPanel extends JPanel {
     }
 
     private void addUserAction(ActionEvent e) {
-        JOptionPane.showMessageDialog(this, "Add user functionality will be implemented here");
+        // Create input dialog
+        JPanel panel = new JPanel(new GridLayout(0, 2));
+
+        JTextField usernameField = new JTextField();
+        JComboBox<String> roleCombo = new JComboBox<>(new String[]{"Admin", "Guard", "Viewer"});
+        JPasswordField passwordField = new JPasswordField();
+        JTextField phoneField = new JTextField();
+
+        panel.add(new JLabel("Username:"));
+        panel.add(usernameField);
+        panel.add(new JLabel("Role:"));
+        panel.add(roleCombo);
+        panel.add(new JLabel("Password:"));
+        panel.add(passwordField);
+        panel.add(new JLabel("Phone:"));
+        panel.add(phoneField);
+
+        int result = JOptionPane.showConfirmDialog(
+                this,
+                panel,
+                "Add New User",
+                JOptionPane.OK_CANCEL_OPTION,
+                JOptionPane.PLAIN_MESSAGE
+        );
+
+        if (result == JOptionPane.OK_OPTION) {
+            try {
+                String username = usernameField.getText().trim();
+                String role = (String) roleCombo.getSelectedItem();
+                String password = new String(passwordField.getPassword());
+                String phone = phoneField.getText().trim();
+
+                // Validate inputs
+                if (username.isEmpty() || password.isEmpty()) {
+                    throw new IllegalArgumentException("Username and password are required");
+                }
+
+                // Hash the password (you should use a proper hashing algorithm like BCrypt)
+                String passwordHash = hashPassword(password); // Implement this method
+
+                // Create user in database
+                boolean success = UserController.addUser(username, role, passwordHash,
+                        phone.isEmpty() ? null : phone);
+
+                if (success) {
+                    populateUserTable();
+                    JOptionPane.showMessageDialog(this, "User added successfully");
+                } else {
+                    JOptionPane.showMessageDialog(this, "Failed to add user", "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        }
     }
 
     private void deleteUserAction(ActionEvent e) {
         int selectedRow = userTable.getSelectedRow();
         if (selectedRow != -1) {
             int modelRow = userTable.convertRowIndexToModel(selectedRow);
-            String username = (String) userTable.getModel().getValueAt(modelRow, 0);
+            Object value = userTable.getModel().getValueAt(modelRow, 1);
+            String username = value.toString();
 
             int confirm = JOptionPane.showConfirmDialog(
                     this,

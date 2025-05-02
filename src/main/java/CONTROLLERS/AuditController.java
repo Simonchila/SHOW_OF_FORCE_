@@ -30,16 +30,13 @@ public class AuditController {
             File fileToSave = fileChooser.getSelectedFile();
             String backupFilePath = fileToSave.getAbsolutePath();
 
-            // DB credentials
-            String dbUser = DB_USERNAME;
-            String dbPass = DB_PASSWORD;
-            String dbName = DB_URL;
+
             String dbHost = "localhost"; // replace if needed
 
             // Build command
             String dumpCommand = String.format(
                     "mysqldump -h%s -u%s -p%s %s -r \"%s.sql\"",
-                    dbHost, dbUser, dbPass, dbName, backupFilePath
+                    dbHost, DB_USERNAME, DB_PASSWORD, DB_URL, backupFilePath
             );
 
             try {
@@ -117,7 +114,7 @@ public class AuditController {
         List<AuditLog> auditLogs = new ArrayList<>();
 
         String query = """
-        SELECT u.Username, 
+        SELECT u.Username,
                a.Timestamp, 
                a.Action, 
                a.Details
